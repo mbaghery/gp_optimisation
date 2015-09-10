@@ -3,10 +3,10 @@ function [c, ceq] = nonlincon(x)
 %   x can be vertical or horizontal. 
 
   % set the non-linear inequalities
-  c=0;
+  c = abs(norm(x)-1) - 1e-6;
   
   % set the non-linear equalities
-  ceq=norm(x)-1;
+  ceq = 0;
 
 end
 

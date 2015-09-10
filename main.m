@@ -1,9 +1,15 @@
-close all; clear all; clc;
+% close all; clear all; clc;
 
 noWorkers=8;
-noLoops=5;
-noFeatures=2; % no. of QHO terms to be included
-filename='Koudai2.mat';
+
+parpool(noWorkers);
+
+noLoops=15;
+
+% this line is specified by the user through the command line
+% noFeatures=3; % no. of QHO terms to be included
+
+filename=['Koudai' num2str(noFeatures) '.mat'];
 
 
 % propagation parameters
@@ -27,12 +33,13 @@ initState.type='groundstate'; % or 'manual'
 
 
 % laser parameters
-laserParams.amplitude=0.5;
+laserParams.amplitude=1;
 laserParams.omega=0.314; % 0.456=100nm, 0.314=145nm
 laserParams.FWHM=100;
 
 
-
+% setting up tdse
+disp('setting up tdse');
 tdseinstance=classtdse;
 tdseinstance.propParams=propParams;
 tdseinstance.simBoxParams=simBoxParams;
@@ -40,20 +47,18 @@ tdseinstance.potParams=potParams;
 
 tdseinstance.initialise;
 
-
+break
 % build the training set
+disp('building the training set');
 trainSetSize=32;
-X=zeros(trainSetSize, noFeatures);
+X=util.cartrand(trainSetSize, noFeatures);
 
 laserFuns=cell(trainSetSize,1);
 for i=1:trainSetSize % no of workers
-  x=util.sph2cart(util.sphrand(noFeatures-1));
-  X(i,:)=x';
-
   laserFuns{i} = @(t) ...
     pulses.QHOEnv(t - propParams.duration / 2, ...
     laserParams.amplitude, laserParams.omega, ...
-    laserParams.FWHM, x');
+    laserParams.FWHM, X(i,:));
 end
 
 spmd
@@ -72,12 +77,12 @@ end
 Y=cell2mat(DistributedY(:));
 
 save(filename, 'X', 'Y', 'noFeatures');
-disp('initial training set done');
+disp('training set done');
 % break
 
 
-% If the training set already exists
-load(filename); % load X and Y
+% % If the training set already exists
+% load(filename); % load X and Y
 
 % X=finalX;
 % Y=finalY;
@@ -87,36 +92,34 @@ load(filename); % load X and Y
 % and hyperparameters initial values
 hyp.cov = [log(1)*ones(noFeatures,1); log(1)]; % [log(lambda_1); log(lambda_2); log(sf)]
 hyp.lik = log(0.05); % log(sn)
-hyp.mean = 82;
-prior.lik = {{@priorDelta}};
-% prior.lik = {{@priorGauss,log(0.1), log(0.01)}};
 
 
-gpinstance=classgp;
+gpinstance=classgp(X,Y);
+% Symmetry
+gpinstance.addTrainPoints([X(:,1:end-1),-1*X(:,end)], Y);
 
-gpinstance.mean={@meanConst};
-gpinstance.cov={@covSEard};
-gpinstance.lik={@likGauss};
-gpinstance.inf={@infPrior,@infExact,prior};
 gpinstance.hyp=hyp;
 
-gpinstance.addPoint(X,Y);
+gpinstance.optimise;
+gpinstance.initialise;
 
 
-% problem.lb = zeros(noFeatures, 1); % Vector of lower bounds
-% problem.ub = pi * [ones(noFeatures-1,1); 2]; % Vector of upper bounds
+% % make sure the last component is always positive
+% problem.Aineq=diag([zeros(noFeatures-1,1); -1]);
+% problem.bineq=zeros(noFeatures,1);
 
+% make sure the new point is on a sphere
 problem.nonlcon=@nonlincon;
 
 problem.solver = 'fmincon';
-problem.options = optimoptions('fmincon', 'GradObj', 'on', 'MaxIter', ...
-  100, 'Display', 'none');
+problem.options = optimoptions('fmincon', ...
+  'GradObj', 'on', 'MaxIter', 100, 'Display', 'none');
 
 laserFuns = cell(noWorkers,1);
 objectives = cell(noWorkers,1);
 
 % bias defined according to arXiv:1507.04964 = bias*mean-(1-bias)*sigma
-bias = linspace(0,1,noWorkers);
+bias = linspace(0.5,1,noWorkers);
 
 for l=1:noLoops
   disp(['Start of round ' num2str(l)]);
@@ -127,15 +130,7 @@ for l=1:noLoops
   
   spmd
     problem.objective=objectives{labindex};
-    
-%     if (labindex==noWorkers) % evaluate return the mean
-%       [~,index]=min(gpinstance.Y);
-%       problem.x0=gpinstance.X(index,:);
-%     else
-    problem.x0 = util.sphrand(noFeatures)'; % initial guess
-%     end
-
-% problem.x0 = 2 * rand(1, noFeatures) - 1; % initial guess
+    problem.x0 = util.cartrand(1,noFeatures); % initial guess    
     
     Distributedx=fmincon(problem);
   end
@@ -146,7 +141,7 @@ for l=1:noLoops
     laserFuns{i} = @(t) ...
       pulses.QHOEnv(t - propParams.duration / 2, ...
       laserParams.amplitude, laserParams.omega, ...
-      laserParams.FWHM, util.sph2cart(x(i,:)')');
+      laserParams.FWHM, x(i,:));
   end
   
   outputFun=@outputs.timeOnly;
@@ -160,16 +155,30 @@ for l=1:noLoops
   
   y=cell2mat(Distributedy(:));
   
-    
-  gpinstance.addPoint(x, y);
-  
-  chargehistory(l)=min(gpinstance.Y);
+  gpinstance.addTrainPoints(x, y);
+  % Symmetry
+  gpinstance.addTrainPoints([x(:,1:end-1),-1*x(:,end)], y);
+  gpinstance.optimise;
+  gpinstance.initialise;
 end
 
-chargehistory
+[finalX, finalY]=gpinstance.getTrainSet;
 
-finalX=gpinstance.X;
-finalY=gpinstance.Y;
+save(filename, 'finalX', 'finalY', '-append');
 
-save(filename, 'X', 'Y', 'noFeatures', 'finalX', 'finalY');
 
+delete(gcp('nocreate'));
+
+
+break
+%% Plot section
+
+hyp.cov = [log(1)*ones(noFeatures,1); log(1)]; % [log(lambda_1); log(lambda_2); log(sf)]
+hyp.lik = log(0.05); % log(sn)
+
+gpinstance=classgp(finalX,finalY);
+
+gpinstance.hyp=hyp;
+
+gpinstance.optimise;
+gpinstance.initialise;
