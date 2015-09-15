@@ -9,8 +9,11 @@ noLoops=15;
 % this line is specified by the user through the command line
 % noFeatures=3; % no. of QHO terms to be included
 
-filename=['Koudai' num2str(noFeatures) '.mat'];
+filename=['results/Koudai' num2str(noFeatures) '.mat'];
 
+
+%% Set up the tdse instance
+disp('Set up the tdse instance');
 
 % propagation parameters
 propParams.duration=1000; % simulation runs from 0 to duration
@@ -29,7 +32,7 @@ potParams.noBoundStates=1;
 
 % set the initial wavefunction
 initState.type='groundstate'; % or 'manual'
-% initState.wavefcn=[1;2;2.1]; % or nothing in case of 'groundstate'
+% initState.wavefun=[1;2;2.1]; % or nothing in case of 'groundstate'
 
 
 % laser parameters
@@ -39,7 +42,6 @@ laserParams.FWHM=100;
 
 
 % setting up tdse
-disp('setting up tdse');
 tdseinstance=classtdse;
 tdseinstance.propParams=propParams;
 tdseinstance.simBoxParams=simBoxParams;
@@ -47,14 +49,16 @@ tdseinstance.potParams=potParams;
 
 tdseinstance.initialise;
 
-break
-% build the training set
-disp('building the training set');
+
+
+%% Build the training set
+disp('Build the training set');
+
 trainSetSize=32;
-X=util.cartrand(trainSetSize, noFeatures);
+X=util.unisphrand(trainSetSize, noFeatures);
 
 laserFuns=cell(trainSetSize,1);
-for i=1:trainSetSize % no of workers
+for i=1:trainSetSize
   laserFuns{i} = @(t) ...
     pulses.QHOEnv(t - propParams.duration / 2, ...
     laserParams.amplitude, laserParams.omega, ...
@@ -77,20 +81,24 @@ end
 Y=cell2mat(DistributedY(:));
 
 save(filename, 'X', 'Y', 'noFeatures');
-disp('training set done');
-% break
 
 
-% % If the training set already exists
-% load(filename); % load X and Y
-
-% X=finalX;
-% Y=finalY;
 
 
-% set covariance function, likelihood function, 
-% and hyperparameters initial values
-hyp.cov = [log(1)*ones(noFeatures,1); log(1)]; % [log(lambda_1); log(lambda_2); log(sf)]
+%% Set up the gp instnace
+disp('Set up the gp instance');
+
+load(filename); % load the training set
+
+
+% normalization
+minY = min(Y);
+maxY = max(Y);
+Y = (2*Y-maxY-minY)*5/(maxY-minY);
+
+% set up the hyperparameters
+% [log(lambda_1); log(lambda_2); log(sf)]
+hyp.cov = [log(1)*ones(noFeatures,1); log(1)];
 hyp.lik = log(0.05); % log(sn)
 
 
@@ -99,14 +107,13 @@ gpinstance=classgp(X,Y);
 gpinstance.addTrainPoints([X(:,1:end-1),-1*X(:,end)], Y);
 
 gpinstance.hyp=hyp;
-
 gpinstance.optimise;
+
 gpinstance.initialise;
 
 
-% % make sure the last component is always positive
-% problem.Aineq=diag([zeros(noFeatures-1,1); -1]);
-% problem.bineq=zeros(noFeatures,1);
+%% Optimization algorithm
+disp('Optimization algorithm');
 
 % make sure the new point is on a sphere
 problem.nonlcon=@nonlincon;
@@ -130,7 +137,7 @@ for l=1:noLoops
   
   spmd
     problem.objective=objectives{labindex};
-    problem.x0 = util.cartrand(1,noFeatures); % initial guess    
+    problem.x0 = util.unisphrand(1,noFeatures); % initial guess    
     
     Distributedx=fmincon(problem);
   end
@@ -155,30 +162,23 @@ for l=1:noLoops
   
   y=cell2mat(Distributedy(:));
   
+  % normalization
+  y=(2*y-maxY-minY)*5/(maxY-minY);
+  
   gpinstance.addTrainPoints(x, y);
   % Symmetry
   gpinstance.addTrainPoints([x(:,1:end-1),-1*x(:,end)], y);
   gpinstance.optimise;
+  
   gpinstance.initialise;
 end
 
 [finalX, finalY]=gpinstance.getTrainSet;
 
+% reverse normalization
+finalY=finalY*(this.maxY-this.minY)/10+(this.maxY+this.minY)/2;
+
 save(filename, 'finalX', 'finalY', '-append');
 
 
 delete(gcp('nocreate'));
-
-
-break
-%% Plot section
-
-hyp.cov = [log(1)*ones(noFeatures,1); log(1)]; % [log(lambda_1); log(lambda_2); log(sf)]
-hyp.lik = log(0.05); % log(sn)
-
-gpinstance=classgp(finalX,finalY);
-
-gpinstance.hyp=hyp;
-
-gpinstance.optimise;
-gpinstance.initialise;

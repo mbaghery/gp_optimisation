@@ -63,7 +63,7 @@ classdef classtdse < handle
       if (strcmp(initState.type, 'groundstate'))
         this.psi=this.boundStates(:,1);
       else
-        this.psi=initState.wavefcn;
+        this.psi=initState.wavefun;
       end
     end
     
