@@ -11,7 +11,10 @@ function output = myHermite(r, n)
   H=zeros(N);
   
   H(1,1)=1; % H_0
-  H(2,2)=2; % H_1
+  
+  if (N>1)
+    H(2,2)=2; % H_1
+  end
   
   for i=3:N
     H(:,i)=[0; 2*H(1:end-1,i-1)]-2*(i-2)*H(:,i-2);

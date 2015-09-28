@@ -14,12 +14,15 @@ classdef classgp < matlab.mixin.Copyable
   
   properties (Access = public)
     hyp;
+    noFeatures;
   end
   
   methods (Access = public)
     function obj = classgp(trainX, trainY)
       obj.X = trainX;
       obj.Y = trainY;
+      
+      obj.noFeatures = size(trainX,2);
     end
     
     function initialise(this)
@@ -126,8 +129,8 @@ classdef classgp < matlab.mixin.Copyable
       % order to normalise them, I have divided the first terms on RHS of
       % the following equations by 10, and have divided the second terms
       % by exp(hyp.cov(end)).
-      f=bias*m/10 - (1-bias)*s/exp(this.hyp.cov(end));
-      df=bias*dm/10 - (1-bias)*ds/exp(this.hyp.cov(end));
+      f = bias*m/10 - (1-bias)*s/exp(this.hyp.cov(end));
+      df = bias*dm/10 - (1-bias)*ds/exp(this.hyp.cov(end));
     end
     
     function [f, df] = evalMe(this, xs)
@@ -136,7 +139,7 @@ classdef classgp < matlab.mixin.Copyable
       eta = min(this.Y);
       
       f = m + (eta/2-m/2)*erfc((eta-m)/(sqrt(2)*s)) - ...
-        s/(2*pi)*exp(-(eta-m)^2/(2*s^2));
+        exp(-(eta-m)^2/(2*s^2))*s/(2*pi);
       
       df = (1-1/2*erfc((eta-m)/(sqrt(2)*s)))*dm - ...
         -exp(-(eta-m)^2/(2*s^2))/sqrt(2*pi)*ds;

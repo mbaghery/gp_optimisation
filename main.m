@@ -1,15 +1,15 @@
-% close all; clear all; clc;
+% clear all; clc;
 
-noWorkers=8;
+noWorkers=13;
 
-parpool(noWorkers);
+parpool('hubert', noWorkers);
 
-noLoops=15;
+noLoops=60;
 
 % this line is specified by the user through the command line
-% noFeatures=3; % no. of QHO terms to be included
+% noFeatures=8; % no. of QHO terms to be included
 
-filename=['results/Koudai' num2str(noFeatures) '.mat'];
+filename=['trainSets/Koudai' num2str(noFeatures) '.mat'];
 
 
 %% Set up the tdse instance
@@ -51,36 +51,36 @@ tdseinstance.initialise;
 
 
 
-%% Build the training set
-disp('Build the training set');
-
-trainSetSize=32;
-X=util.unisphrand(trainSetSize, noFeatures);
-
-laserFuns=cell(trainSetSize,1);
-for i=1:trainSetSize
-  laserFuns{i} = @(t) ...
-    pulses.QHOEnv(t - propParams.duration / 2, ...
-    laserParams.amplitude, laserParams.omega, ...
-    laserParams.FWHM, X(i,:));
-end
-
-spmd
-  DistributedY=zeros(trainSetSize/noWorkers,1);
-  
-  for i=1:trainSetSize/noWorkers
-    disp(['loop no. ' num2str(i)]);
-    
-    tdseinstance.setWavefunction(initState);
-    
-    tdseinstance.propagate(laserFuns{(labindex-1)*trainSetSize/noWorkers+i});
-    DistributedY(i) = tdseinstance.getCharge;
-  end
-end
-
-Y=cell2mat(DistributedY(:));
-
-save(filename, 'X', 'Y', 'noFeatures');
+% %% Build the training set
+% disp('Build the training set');
+% 
+% trainSetSize=32;
+% X=util.unisphrand(trainSetSize, noFeatures);
+% % X = lhsdesign(n,p)
+% laserFuns=cell(trainSetSize,1);
+% for i=1:trainSetSize
+%   laserFuns{i} = @(t) ...
+%     pulses.freqEnv(t - propParams.duration / 2, ...
+%     laserParams.amplitude, laserParams.omega, ...
+%     laserParams.FWHM, X(i,:));
+% end
+% 
+% spmd
+%   DistributedY=zeros(trainSetSize/noWorkers,1);
+%   
+%   for i=1:trainSetSize/noWorkers
+%     disp(['loop no. ' num2str(i)]);
+%     
+%     tdseinstance.setWavefunction(initState);
+%     
+%     tdseinstance.propagate(laserFuns{(labindex-1)*trainSetSize/noWorkers+i});
+%     DistributedY(i) = tdseinstance.getCharge;
+%   end
+% end
+% 
+% Y=cell2mat(DistributedY(:));
+% 
+% save(filename, 'X', 'Y', 'noFeatures');
 
 
 
@@ -96,20 +96,19 @@ minY = min(Y);
 maxY = max(Y);
 Y = (2*Y-maxY-minY)*5/(maxY-minY);
 
-% set up the hyperparameters
+% set the hyperparameters
 % [log(lambda_1); log(lambda_2); log(sf)]
 hyp.cov = [log(1)*ones(noFeatures,1); log(1)];
-hyp.lik = log(0.05); % log(sn)
+
+sn = 0.05*10; % uncertainty 10% because y range is 0 to 10
+hyp.lik = log(sn); % log(sn)
 
 
 gpinstance=classgp(X,Y);
 % Symmetry
-gpinstance.addTrainPoints([X(:,1:end-1),-1*X(:,end)], Y);
+gpinstance.addTrainPoints(-X, Y);
 
 gpinstance.hyp=hyp;
-gpinstance.optimise;
-
-gpinstance.initialise;
 
 
 %% Optimization algorithm
@@ -123,7 +122,6 @@ problem.options = optimoptions('fmincon', ...
   'GradObj', 'on', 'MaxIter', 100, 'Display', 'none');
 
 laserFuns = cell(noWorkers,1);
-objectives = cell(noWorkers,1);
 
 % bias defined according to arXiv:1507.04964 = bias*mean-(1-bias)*sigma
 bias = linspace(0.5,1,noWorkers);
@@ -131,22 +129,57 @@ bias = linspace(0.5,1,noWorkers);
 for l=1:noLoops
   disp(['Start of round ' num2str(l)]);
   
+  gpinstance.optimise;
+  gpinstance.initialise;
+  disp('gp optimised and initialised');
+
+  % Australian version Start
+  objectives = cell(noWorkers,1);
+  
   for i=1:noWorkers
-    objectives{i} = @(x) gpinstance.evaluate(x, bias(i)); %Objective function
+    objectives{i} = @(x) gpinstance.evalAus(x, bias(i)); %Objective function
   end
   
   spmd
     problem.objective=objectives{labindex};
     problem.x0 = util.unisphrand(1,noFeatures); % initial guess    
     
-    Distributedx=fmincon(problem);
+    Distributedx = fmincon(problem);
   end
   
   x=cell2mat(Distributedx(:));
+  % Australian version End
+
+
+%   % my version Start
+%   gpclone=gpinstance.copy;
+%   x=zeros(noWorkers, noFeatures);
+%   
+%   for i=1:noWorkers
+%     problem.objective = @(x) gpclone.evalMe(x);
+%     problem.x0 = util.unisphrand(1,noFeatures);
+%     x(i,:) = fmincon(problem);
+%     y = gpclone.predict(x(i,:));
+%     gpclone.addTrainPoints(x(i,:),y);
+%     % Symmetry
+%     gpclone.addTrainPoints(-x(i,:), y);
+%     gpclone.initialise;
+%   end
+%   % my version End
+  
+  
+
+%   % my 2nd version Start
+%   x=auxMyVer2(int8(log(2*noWorkers+1)/log(3)), gpinstance);
+%   % my 2nd version End
+
+
+
+  disp('next x found');
   
   for i = 1:noWorkers
     laserFuns{i} = @(t) ...
-      pulses.QHOEnv(t - propParams.duration / 2, ...
+      pulses.freqEnv(t - propParams.duration / 2, ...
       laserParams.amplitude, laserParams.omega, ...
       laserParams.FWHM, x(i,:));
   end
@@ -167,16 +200,14 @@ for l=1:noLoops
   
   gpinstance.addTrainPoints(x, y);
   % Symmetry
-  gpinstance.addTrainPoints([x(:,1:end-1),-1*x(:,end)], y);
-  gpinstance.optimise;
+  gpinstance.addTrainPoints(-x, y);
   
-  gpinstance.initialise;
 end
 
 [finalX, finalY]=gpinstance.getTrainSet;
 
 % reverse normalization
-finalY=finalY*(this.maxY-this.minY)/10+(this.maxY+this.minY)/2;
+finalY=finalY*(maxY-minY)/10+(maxY+minY)/2;
 
 save(filename, 'finalX', 'finalY', '-append');
 
