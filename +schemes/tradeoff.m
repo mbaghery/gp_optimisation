@@ -1,5 +1,5 @@
 function x = tradeoff(noPoints, gp, problem, randFun)
-%AUXMYVER2 Trade-off between DFS and BFS
+%TRADEOFF Trade-off between DFS and BFS
 %   Detailed explanation goes here
 
   x = zeros(noPoints, gp.noFeatures);
@@ -18,7 +18,7 @@ function x = tradeoff(noPoints, gp, problem, randFun)
     
     gpclone.addTrainPoints(x(1,:), y);
     % Symmetry
-    gpclone.addTrainPoints(-x(1,:), y);
+%     gpclone.addTrainPoints(-x(1,:), y);
     
     gpclone.initialise;
 

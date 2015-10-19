@@ -13,7 +13,7 @@ function Y = denormalise(Y, Ymin, Ymax, noShift)
   if (noShift)
     Y = Y / normFactor;
   else
-    Y = (Y - (Ymax+Ymin)/2) / normFactor;
+    Y = Y / normFactor + (Ymax+Ymin)/2;
   end
   
 end

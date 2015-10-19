@@ -2,147 +2,120 @@ clear all; clc;
 
 noWorkers=8;
 
-noLoops=20;
+noLoops=6;
 
-noFeatures=2;
+noFeatures=1;
 
-filename='Griewank.mat';
+filename='Ackley.mat';
+
+% set the approximate Y range
+Ymin = -4;
+Ymax = 6;
+
+% set the hypercube limits
+Xmin = -50;
+Xmax = 100;
+
+randFun=@(m, n) (Xmax - Xmin) * rand(m, n) + Xmin;
 
 
-% Griewank
-% f =@(x,y) 1 + 1/4000*((x/5*600).^2+(y/5*600).^2) - cos((x/5*600)).*cos((y/5*600)/sqrt(2));
-
-% Rastirgin
-% f =@(x,y) 20 + x.^2 - 10*cos(2*pi*x) + y.^2 - 10*cos(2*pi*y);
-
-% Ackley's
-f =@(x,y) -20*exp(-0.2*sqrt(0.5*(x.^2+y.^2))) ...
-  - exp(0.5*(cos(2*pi*x)+cos(2*pi*y))) + exp(1) + 20;
-
-randFun=@(m,n) 10 * rand(m, n) - 5;
-
+% the goal function
+% f = @(x) log(testFuns.griewank(x));
+% f = @(x) sqrt(testFuns.griewank(x));
+f = @testFuns.griewank;
 
 %% Build the training set
 disp('Build the training set');
 
-trainSetSize=32;
+trainSetSize=20;
 X = randFun(trainSetSize, noFeatures);
-Y = f(X(:,1),X(:,2));
+Y = f(X);
 
-save(filename, 'X', 'Y', 'noFeatures');
-
-
+% save(filename, 'X', 'Y', 'noFeatures');
 
 
 %% Set up the gp instnace
 disp('Set up the gp instance');
-
-load(filename); % load the training set
-
-
-% normalization
-minY = min(Y);
-maxY = max(Y);
-Y = (Y - (maxY+minY)/2) * 10/(maxY-minY);
-
-% set the hyperparameters
-% [log(lambda_1); log(lambda_2); log(sf)]
-hyp.cov = [log(1)*ones(noFeatures,1); log(1)];
-
-sn = 0.05 * 10/(maxY-minY); % uncertainty, factor 10 because y is rescaled to [0..10]
-hyp.lik = log(sn); % log(sn)
-
-
-gpinstance=classgp(X,Y);
-
-gpinstance.hyp=hyp;
+setGP;
 
 
 %% Optimization algorithm
 disp('Optimization algorithm');
 
-problem.lb=[-5,-5];
-problem.ub=[5,5];
+problem.lb = Xmin*ones(1,noFeatures);
+problem.ub = Xmax*ones(1,noFeatures);
 
 problem.solver = 'fmincon';
 problem.options = optimoptions('fmincon', ...
   'GradObj', 'on', 'MaxIter', 100, 'Display', 'none');
 
 % bias defined according to arXiv:1507.04964 = bias*mean-(1-bias)*sigma
-bias = linspace(0.5,1,noWorkers);
+bias = linspace(0.5, 1, noWorkers);
 
 for l=1:noLoops
   disp(['Start of round ' num2str(l)]);
-  
-  gpinstance.hyp=hyp;
-  gpinstance.optimise;
-  gpinstance.initialise;
-  disp('gp optimised and initialised');
 
   
-%   % Australian version Start
-%   x=zeros(noWorkers, noFeatures);
-%   
-%   for i=1:noWorkers
-%     problem.objective = @(x) gpinstance.evalAus(x, bias(i)); %Objective function;
-%     problem.x0 = randfun(1, noFeatures); % initial guess    
-%     
-%     x(i,:) = fmincon(problem);
-%   end
-%   % Australian version End
+  % australian scheme
+%   x = schemes.australia(noWorkers, gpinstance, problem, randFun);
 
-
-
-  problem.objective = @(x) gpinstance.evalAus(x, bias(mod(l,noWorkers)+1)); %Objective function;
-  problem.x0 = randFun(1, noFeatures); % initial guess    
-
-  x0 = fmincon(problem);
-
-%   % my version Start
-%   gpclone=gpinstance.copy;
-%   x=zeros(noWorkers, noFeatures);
-%   
-%   problem.objective = @(x) gpclone.evalMe(x);
-%   
-%   for i=1:noWorkers
-%     problem.x0 = x0; %randfun(1, noFeatures);
-%     
-%     x(i,:) = fmincon(problem);
-%     y = gpclone.predict(x(i,:));
-%     
-%     gpclone.addTrainPoints(x(i,:),y);
-%     gpclone.initialise;
-%   end
-%   % my version End
+  % greedy
+%   x = schemes.australia(noWorkers, gpinstance, problem, randFun, ones(noWorkers,1));
   
+  % depth-first search scheme
+  x = schemes.DFS(noWorkers, gpinstance, problem, randFun);
   
+  % tradeoff scheme
+%   x = schemes.tradeoff(noWorkers, gpinstance, problem, randFun);
   
-  % my 2nd version Start
-  x=auxMyVer2(int8(log(2*noWorkers+1)/log(3)), gpinstance, problem, @(x,y) x0); % randfun);
-  % my 2nd version End
+  % some hybrid scheme % best so far IMO
+%   x = schemes.australia(1, gpinstance, problem, randFun, (1+mod(l,5))/5);
+%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
+  
+  % some other hybrid scheme
+%   x = schemes.australia(1, gpinstance, problem, randFun);
+%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
 
+  % yet another hybrid scheme
+%   [x, ~] = gpinstance.getMin;
+%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
 
 
   disp('next x found');
+
+  postProc.plot2d;
+  drawnow;
+  while(waitforbuttonpress==0)
+  end
+%   saveas = ['round' num2str(l) '.png'];
+%   export_fig(saveas, '-transparent');
   
-  y = f(x(:,1),x(:,2));
+  y = f(x);
   
-  % normalization
-  y = (y - (maxY+minY)/2) * 10/(maxY-minY);
+  % normalisation
+  y = util.normalise(y, Ymin, Ymax);
   
   gpinstance.addTrainPoints(x, y);
   
+  gpinstance.hyp = hyp;
+  gpinstance.optimise;
+  gpinstance.initialise;
+  
+  
+
 end
 
-[finalX, finalY]=gpinstance.getTrainSet;
+[finalX, finalY] = gpinstance.getTrainSet;
+
+% denormalise
+finalY = util.denormalise(finalY, Ymin, Ymax);
 
 
-gpinstance.optimise;
-gpinstance.initialise;
+postProc.plot2d;
+drawnow;
+% saveas = ['round' num2str(noLoops+1) '.png'];
+% export_fig(saveas, '-transparent');
 
-
-% reverse normalization
-finalY=finalY*(maxY-minY)/10+(maxY+minY)/2;
 
 [minn,idx]=min(finalY);
 disp([num2str(finalX(idx,:)) ': ' num2str(minn)]);

@@ -18,11 +18,13 @@ classdef classgp < matlab.mixin.Copyable
   end
   
   methods (Access = public)
-    addTrainPoints(this, xs, ys)
     initialise(this)
     optimise(this)
+    addTrainPoints(this, xs, ys)
     [m, s, dm, ds] = predict(this, xs)
+    [f, df] = oneStepLookahead(this, xs)
     [x, y] = getTrainSet(this)
+    [x, y] = getMin(this)
     
     function obj = classgp(trainX, trainY)
       obj.X = trainX;

@@ -17,7 +17,7 @@ function x = australia(noPoints, gp, problem, randFun, bias)
   end
   
   function [f, df] = evaluate(xs, b)
-    % return b*mean-(1-b)*sigma
+    % return b*mean-(1-b)*sigma and its derivative
     % xs is a row vector
     
     [m, s, dm, ds] = gp.predict(xs);

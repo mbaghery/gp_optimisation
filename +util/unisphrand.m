@@ -1,6 +1,6 @@
 function components = unisphrand(m, n)
 %CARTRAND Generate m random numbers uniformly distributed on an n-dimensional sphere
-%   The output is the components of a vector with its tip on an
+%   The output is the components of a vector whose tip is on an
 %   n-dimensional sphere; the output consists of m rows each of which
 %   has n-dimensions.
 
@@ -9,8 +9,8 @@ function components = unisphrand(m, n)
 % Zürich, 10-July, 1997
 
    
-  components=randn(m,n);
+  components = randn(m, n);
   
-  components=bsxfun(@rdivide, components, sqrt(sum(components.^2,2)));
+  components = bsxfun(@rdivide, components, sqrt(sum(components.^2,2)));
 
 end

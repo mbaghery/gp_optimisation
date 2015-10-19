@@ -17,6 +17,10 @@ trainSetSize=32;
 Ymin = 0;
 Ymax = 1;
 
+% make sure the new point is on a sphere
+problem.nonlcon=@nonlincon;
+
+
 %% Set up a tdse instance
 disp('Set up a tdse instance');
 setTDSE;
@@ -35,9 +39,6 @@ setGP;
 %% Optimization algorithm
 disp('Optimization algorithm');
 
-% make sure the new point is on a sphere
-problem.nonlcon=@nonlincon;
-
 problem.solver = 'fmincon';
 problem.options = optimoptions('fmincon', ...
   'GradObj', 'on', 'MaxIter', 100, 'Display', 'none');
@@ -46,10 +47,6 @@ laserFuns = cell(noWorkers, 1);
 
 for l=1:noLoops
   disp(['Start of round ' num2str(l)]);
-  
-  gpinstance.optimise;
-  gpinstance.initialise;
-  disp('gp optimised and initialised');
 
 %   % Australian version Start
 %   objectives = cell(noWorkers,1);
@@ -117,11 +114,11 @@ for l=1:noLoops
   
   % some hybrid scheme
   x = schemes.australia(1, gpinstance, problem, @util.unisphrand, (1+mod(l,5))/5);
-  x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t) x);
+  x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
   
   % some other hybrid scheme
   x = schemes.australia(1, gpinstance, problem, @util.unisphrand);
-  x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t) x);
+  x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
 
 
   disp('next x found');
@@ -150,11 +147,14 @@ for l=1:noLoops
   
   gpinstance.addTrainPoints(x, y);
   % Symmetry
-  gpinstance.addTrainPoints(-x, y);
+%   gpinstance.addTrainPoints(-x, y);
   
+  gpinstance.hyp = hyp;
+  gpinstance.optimise;
+  gpinstance.initialise;
 end
 
-[finalX, finalY]=gpinstance.getTrainSet;
+[finalX, finalY] = gpinstance.getTrainSet;
 
 % denormalise
 finalY = util.denormalise(finalY, Ymin, Ymax);

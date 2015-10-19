@@ -22,6 +22,7 @@ classdef classtdse < handle
   methods (Access = public)
     initialise(this)
     setWavefunction(this, initState)
+    wavefunction = getWavefunction(this)
     propagate(this, laserFun, howOften, outputFun)
     c = getCharge(this)
   end
