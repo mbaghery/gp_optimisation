@@ -1,11 +1,7 @@
 function optimise(this)
   % optimise the hyperparameters
   
-  prior.lik = {{@priorDelta}};
-
-  optimizedhyp = minimize(this.hyp, @gp, -300, ...
-    {@infPrior,@infExact,prior}, [], ...
-    {@covSEard}, {@likGauss}, this.X, this.Y);
-
-  this.hyp=optimizedhyp;
+  this.hyp = minimize(this.hyp, @gp, -300, ...
+    this.inf, this.mean, this.cov, this.lik, this.X, this.Y);
+  
 end

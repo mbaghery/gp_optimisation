@@ -2,7 +2,7 @@ clear all; clc;
 
 noWorkers=8;
 
-noLoops=6;
+noLoops=8;
 
 noFeatures=1;
 

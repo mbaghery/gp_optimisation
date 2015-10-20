@@ -7,13 +7,22 @@ classdef classgp < matlab.mixin.Copyable
     X; % training set
     Y; % target values
     
-    % the following matrices are stored for the sake of efficiency
-    alpha;
+    % the following matrices are stored for the sake of efficiency (aka for
+    % fuck's sake)
+    
+%     alpha;
     beta;
+    
+    post;
   end
   
   properties (Access = public)
     hyp;
+    inf;
+    mean;
+    cov;
+    lik;
+    
     noFeatures;
   end
   
