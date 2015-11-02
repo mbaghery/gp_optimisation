@@ -1,31 +1,28 @@
-% load(filename); % load the training set
-
-
-% set the hyperparameters
-% [log(lambda_1); ...; log(lambda_n); log(sf)]
+% covariance function hyperparameters
+%     [log(lambda_1);
+%       .;
+%       .;
+%       .;
+%      log(lambda_n);
+%      log(sf)]
 hyp.cov = [log(1) * ones(noFeatures, 1); log(1)];
 
-% set the uncertainty
-sn = util.normalise(0.01, Ymin, Ymax, true);
-hyp.lik = log(sn);
+% mean function hyperparameters
+hyp.mean=[];
 
 
 % normalization
 Y = util.normalise(Y, Ymin, Ymax);
 
 gpinstance = classgp(X, Y);
-% Symmetry
-% gpinstance.addTrainPoints(-X, Y);
 
-gpinstance.hyp = hyp;
+sn = util.normalise(0.01, Ymin, Ymax, true);
+gpinstance.uncertainty = log(sn);
 
-prior.lik = {{@priorDelta}};
-gpinstance.inf = {@infPrior,@infExact,prior};
-gpinstance.mean = [];
-gpinstance.cov = {@covSEard};
-gpinstance.lik = {@likGauss};
+gpinstance.mean = {@meanFuns.meanZero};
+gpinstance.cov = {@covFuns.covSEard};
+gpinstance.meanD = {@meanDFuns.meanZeroD};
+gpinstance.covD = {@covDFuns.covSEardD};
 
 
-
-gpinstance.optimise;
-gpinstance.initialise;
+gpinstance.infer(gpinstance.optimise(hyp));

@@ -7,30 +7,34 @@ classdef classgp < matlab.mixin.Copyable
     X; % training set
     Y; % target values
     
-    % the following matrices are stored for the sake of efficiency (aka for
-    % fuck's sake)
-    
-%     alpha;
-    beta;
-    
-    post;
+    % the following matrices are stored for the sake of efficiency
+    alpha;
+    invK; % inv K matrix with noise
+    invK_dK_alpha;
+    invK_dmu;
+%     dK_alpha;
+
   end
   
   properties (Access = public)
+    uncertainty;
     hyp;
-    inf;
     mean;
     cov;
-    lik;
+    meanD;
+    covD;
     
-    noFeatures;
+    hessian;
+    
+    noFeatures; % dimension of each training point
   end
   
   methods (Access = public)
-    initialise(this)
-    optimise(this)
+    [l, dl, ddl] = infer(this, hyp)
+    output = optimise(this, hyp)
     addTrainPoints(this, xs, ys)
-    [m, s, dm, ds] = predict(this, xs)
+    [m, s, dm, ds] = predictMAP(this, xs)
+    [m, s, dm, ds] = predictBBQ(this, xs)
     [f, df] = oneStepLookahead(this, xs)
     [x, y] = getTrainSet(this)
     [x, y] = getMin(this)

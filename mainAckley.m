@@ -1,22 +1,23 @@
 clear all; clc;
 
-noWorkers=8;
+noWorkers = 8;
 
-noLoops=8;
+noLoops = 10;
 
-noFeatures=1;
+noFeatures = 1;
 
-filename='Ackley.mat';
+filename = 'Ackley.mat';
 
 % set the approximate Y range
-Ymin = -4;
-Ymax = 6;
+Ymin = -5;
+Ymax = 5;
 
 % set the hypercube limits
-Xmin = -50;
-Xmax = 100;
+domain.min = -50 * ones(1, noFeatures);
+domain.max = 50 * ones(1, noFeatures);
 
-randFun=@(m, n) (Xmax - Xmin) * rand(m, n) + Xmin;
+randFun=@(m) bsxfun(@plus, bsxfun(@times, rand(m, noFeatures), ...
+  (domain.max - domain.min)), domain.min);
 
 
 % the goal function
@@ -27,23 +28,30 @@ f = @testFuns.griewank;
 %% Build the training set
 disp('Build the training set');
 
-trainSetSize=20;
-X = randFun(trainSetSize, noFeatures);
-Y = f(X);
-
+% trainSetSize = 10;
+% X = randFun(trainSetSize);
+% Y = f(X);
+% 
 % save(filename, 'X', 'Y', 'noFeatures');
-
+load(filename); % load the training set
+% break
 
 %% Set up the gp instnace
 disp('Set up the gp instance');
 setGP;
 
 
+% hess=@(x) exp(-gpinstance.infer(struct('mean',x(1),'cov',x(2:end))));
+% hesslog=@(x) gpinstance.infer(struct('mean',x(1),'cov',x(2:end)));
+% hypopt=gpinstance.hyp;
+% clc
+break
+
 %% Optimization algorithm
 disp('Optimization algorithm');
 
-problem.lb = Xmin*ones(1,noFeatures);
-problem.ub = Xmax*ones(1,noFeatures);
+problem.lb = domain.min;
+problem.ub = domain.max;
 
 problem.solver = 'fmincon';
 problem.options = optimoptions('fmincon', ...
@@ -63,32 +71,18 @@ for l=1:noLoops
 %   x = schemes.australia(noWorkers, gpinstance, problem, randFun, ones(noWorkers,1));
   
   % depth-first search scheme
-  x = schemes.DFS(noWorkers, gpinstance, problem, randFun);
+  x = schemes.BFS(noWorkers, gpinstance, problem, randFun);
   
-  % tradeoff scheme
-%   x = schemes.tradeoff(noWorkers, gpinstance, problem, randFun);
-  
-  % some hybrid scheme % best so far IMO
-%   x = schemes.australia(1, gpinstance, problem, randFun, (1+mod(l,5))/5);
-%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
-  
-  % some other hybrid scheme
-%   x = schemes.australia(1, gpinstance, problem, randFun);
-%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
-
-  % yet another hybrid scheme
-%   [x, ~] = gpinstance.getMin;
-%   x = schemes.tradeoff(noWorkers, gpinstance, problem, @(t1,t2) x);
-
-
   disp('next x found');
 
-  postProc.plot2d;
+%   figure
+%   postProc.plotEvidence;
+  
+  postProc.plotLatentFun;
   drawnow;
-  while(waitforbuttonpress==0)
-  end
-%   saveas = ['round' num2str(l) '.png'];
-%   export_fig(saveas, '-transparent');
+%   while(waitforbuttonpress==0)
+%   end
+%   saveas = ['round' num2str(l) '.png']; export_fig(saveas, '-transparent');
   
   y = f(x);
   
@@ -97,21 +91,22 @@ for l=1:noLoops
   
   gpinstance.addTrainPoints(x, y);
   
-  gpinstance.hyp = hyp;
-  gpinstance.optimise;
-  gpinstance.initialise;
+  
+  gpinstance.infer(gpinstance.optimise(hyp));
   
   
-
 end
+
+x=[];
+y=[];
 
 [finalX, finalY] = gpinstance.getTrainSet;
 
 % denormalise
 finalY = util.denormalise(finalY, Ymin, Ymax);
 
-
-postProc.plot2d;
+figure
+postProc.plotLatentFun;
 drawnow;
 % saveas = ['round' num2str(noLoops+1) '.png'];
 % export_fig(saveas, '-transparent');
