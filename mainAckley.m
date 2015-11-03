@@ -6,7 +6,7 @@ noLoops = 10;
 
 noFeatures = 1;
 
-filename = 'Ackley.mat';
+filename = 'Ackley2.mat';
 
 % set the approximate Y range
 Ymin = -5;
@@ -28,12 +28,12 @@ f = @testFuns.griewank;
 %% Build the training set
 disp('Build the training set');
 
-% trainSetSize = 10;
-% X = randFun(trainSetSize);
-% Y = f(X);
-% 
+trainSetSize = 4;
+X = randFun(trainSetSize);
+Y = f(X);
+
 % save(filename, 'X', 'Y', 'noFeatures');
-load(filename); % load the training set
+% load(filename); % load the training set
 % break
 
 %% Set up the gp instnace
@@ -45,6 +45,21 @@ setGP;
 % hesslog=@(x) gpinstance.infer(struct('mean',x(1),'cov',x(2:end)));
 % hypopt=gpinstance.hyp;
 % clc
+xx=linspace(domain.min, domain.max, 500)';
+[m,k,dm,dk] = gpinstance.predictMAP(xx);
+[m2,k2,dm2,dk2] = gpinstance.predictBBQ(xx);
+% figure, plot(xx,k2,'b', xx,dk2,'r', xx(1:end-1)+(domain.max-domain.min)/1000,diff(k2)*500/(domain.max-domain.min))
+figure, plot(xx,k,'b',xx,k2,'r')
+% figure, myvarianceplot(xx,m,sqrt(k));
+% figure, myvarianceplot(xx,m2,sqrt(k2));
+
+
+% fun = @(x) covDFuns.covSEardD(x, [1,1,1], [1.5,2,1.1]) * [0;1;0];
+% gradest(fun, gpinstance.hyp.cov)
+% covDFuns.covSEardD(gpinstance.hyp.cov, [1,1,1], [1.5,2,1.1])
+
+
+
 break
 
 %% Optimization algorithm
@@ -105,7 +120,7 @@ y=[];
 % denormalise
 finalY = util.denormalise(finalY, Ymin, Ymax);
 
-figure
+% figure
 postProc.plotLatentFun;
 drawnow;
 % saveas = ['round' num2str(noLoops+1) '.png'];

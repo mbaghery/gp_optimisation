@@ -1,4 +1,4 @@
-function A = meanZero(hyp, x, i, j)
+function m = meanZero(hyp, x, i, j)
 
 % Zero mean function. The mean function does not have any parameters.
 %
@@ -8,5 +8,5 @@ function A = meanZero(hyp, x, i, j)
 %
 % See also MEANFUNCTIONS.M.
 
-if nargin<2, A = '0'; return; end             % report number of hyperparameters 
-A = zeros(size(x,1),1);                                    % derivative and mean
+if nargin<2, m = '0'; return; end             % report number of hyperparameters 
+m = zeros(size(x,1),1);                                    % derivative and mean

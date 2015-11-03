@@ -151,6 +151,6 @@ function [l, dl, ddl] = infer(this, hyp)
 %   this.hessian = ddl(end-numel(hyp.cov)+1:end-1,end-numel(hyp.cov)+1:end-1) ...
 %     \ eye(numel(hyp.cov)-1);
   
-  this.hessian = ddl \ eye(noHP);
+  this.LaplaceCov = ddl \ eye(noHP);
   
 end

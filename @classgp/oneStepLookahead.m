@@ -9,7 +9,8 @@ function [f, df] = oneStepLookahead(this, xs)
     return
   end
 
-  [m, k, dm, dk] = this.predictMAP(xs);
+%   [m, k, dm, dk] = this.predictMAP(xs);
+  [m, k, dm, dk] = this.predictBBQ(xs);
 
   eta = min(this.Y);
 

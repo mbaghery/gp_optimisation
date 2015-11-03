@@ -29,9 +29,9 @@ function [m, k, Dm, Dk] = predictBBQ(this, xs)
   
   
 %   k = k + sum((dmStar(:,end-numel(this.hyp.cov)+1:end-1) * ...
-%     this.hessian) .* dmStar(:,end-numel(this.hyp.cov)+1:end-1), 2);
+%     this.LaplaceCov) .* dmStar(:,end-numel(this.hyp.cov)+1:end-1), 2);
   
-  k = k + sum((dmStar * this.hessian) .* dmStar, 2);
+  k = k + sum((dmStar * this.LaplaceCov) .* dmStar, 2);
 
   
   
@@ -64,9 +64,9 @@ function [m, k, Dm, Dk] = predictBBQ(this, xs)
     
     
 %     Dk(i,:) = Dk(i,:) + 2 * dmStar(i,end-numel(this.hyp.cov)+1:end-1) * ...
-%       this.hessian * dDmStar(end-numel(this.hyp.cov)+1:end-1,:);
+%       this.LaplaceCov * dDmStar(end-numel(this.hyp.cov)+1:end-1,:);
     
-    Dk(i,:) = Dk(i,:) + 2 * dmStar(i,:) * this.hessian * dDmStar;
+    Dk(i,:) = Dk(i,:) + 2 * dmStar(i,:) * this.LaplaceCov * dDmStar;
   end
   
   

@@ -1,43 +1,35 @@
-function dK = covSEardD(hyp, x, z, i)
+function DK = covSEardD(hyp, x, z, i)
 %COVSEARDD dK/dx
 %   Derivative with respect to x of Squared Exponential covariance function
 %   with Automatic Relevance Detemination (ARD) distance measure.
 %
 %   It is only allowed for one of x and z to have more than one point.
+%   Tested on 2/11/2015. Works fine.
 
-
-
-  if nargin<2, dK = '(D+1)'; return; end             % report number of parameters
-  if nargin<3, z = []; end                                   % make sure, z exists
-  xeqz = isempty(z);                                              % determine mode
+  if nargin<2, DK = '(D+1)'; return; end             % report number of parameters
+  if nargin<3, z = 'diag'; end                               % make sure, z exists
+  dg = strcmp(z,'diag');                                          % determine mode
 
   [n,D] = size(x);
   ell = exp(hyp(1:D));                               % characteristic length scale
 
   % precompute distances
-  if xeqz                                                   % symmetric matrix Kxx
-    dK = zeros(n,D);
+  if dg                                                     % symmetric matrix Kxx
+    DK = zeros(n,D);
     return;
   else                                                     % cross covariances Kxz
-    dK = bsxfun(@minus,x*diag(1./(ell.^2)),z*diag(1./(ell.^2)));
-    % it is only allowed for one of x or z to have multiple points
-    if (size(z,1)~=1) % if z has more than one
-      dK = dK';
-    end
+    DK = bsxfun(@minus, x*diag(1./(ell.^2)), z*diag(1./(ell.^2)));
   end
 
-  if nargin<=3
-    dK = bsxfun(@times, dK, covFuns.covSEard(hyp, x, z));
-  elseif nargin>3                    % derivatives with respect to hyperparameters
-    dK = dK .* covFuns.covSEard(hyp, x, z, i);
+  DK = bsxfun(@times, DK, covFuns.covSEard(hyp, x, z));
+  if nargin>3                    % derivatives with respect to hyperparameters
     if i<=D
-      Q = bsxfun(@minus,x(:,i)*diag(1./(ell(i).^2)),z(:,i)*diag(1./(ell(i).^2)));
-      if (size(z,1)~=1) % if z has more than one
-        Q = Q';
-      end
-      dK = dK - 2 * covFuns.covSEard(hyp, x, z) .* Q;
+      Q = zeros(n,D);
+      Q(:,i)=1;
+      DK = DK .* bsxfun(@minus, (x(:,i)-z(i)).^2/ell(i)^2, 2*Q);
+    elseif i==D+1
+      DK = 2 * DK;
     end
-
   end
 
 end

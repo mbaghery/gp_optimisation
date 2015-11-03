@@ -1,4 +1,4 @@
-function A = meanPow(d, mean, hyp, x, i, j)
+function m = meanPow(d, mean, hyp, x, i, j)
 
 % meanPow - compose a mean function as the power of another mean function m0.
 %
@@ -19,15 +19,15 @@ function A = meanPow(d, mean, hyp, x, i, j)
 
 d = max(abs(floor(d)),1);                         % positive integer degree only
 if nargin<4                                        % report number of parameters
-  A = feval(mean{:}); return
+  m = feval(mean{:}); return
 end
 
 [n,D] = size(x);
 if nargin==4                                               % compute mean vector
-  A = feval(mean{:},hyp,x).^d;
+  m = feval(mean{:},hyp,x).^d;
 elseif nargin ==5                                    % compute derivative vector
-  A = ( d*feval(mean{:},hyp,x).^(d-1) ).* feval(mean{:},hyp,x,i);
+  m = ( d*feval(mean{:},hyp,x).^(d-1) ).* feval(mean{:},hyp,x,i);
 else                                                           % compute hessian
-  A = ( d*(d-1)*feval(mean{:},hyp,x).^(d-2) ).*feval(mean{:},hyp,x,i).*feval(mean{:},hyp,x,j) ...
+  m = ( d*(d-1)*feval(mean{:},hyp,x).^(d-2) ).*feval(mean{:},hyp,x,i).*feval(mean{:},hyp,x,j) ...
     + ( d*feval(mean{:},hyp,x).^(d-1) ).*feval(mean{:},hyp,x,i,j);
 end

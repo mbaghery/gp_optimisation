@@ -24,7 +24,7 @@ classdef classgp < matlab.mixin.Copyable
     meanD;
     covD;
     
-    hessian;
+    LaplaceCov;
     
     noFeatures; % dimension of each training point
   end

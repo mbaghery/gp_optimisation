@@ -1,4 +1,4 @@
-function A = meanLinear(hyp, x, i, j)
+function m = meanLinear(hyp, x, i, j)
 
 % Linear mean function. The mean function is parameterized as:
 %
@@ -15,18 +15,18 @@ function A = meanLinear(hyp, x, i, j)
 %
 % See also MEANFUNCTIONS.M.
 
-if nargin<2, A = 'D'; return; end             % report number of hyperparameters 
+if nargin<2, m = 'D'; return; end             % report number of hyperparameters 
 [n,D] = size(x);
 if any(size(hyp)~=[D,1]), error('Exactly D hyperparameters needed.'), end
 a = hyp(:);
 if nargin==2
-  A = x*a;                                                       % evaluate mean
+  m = x*a;                                                       % evaluate mean
 elseif nargin ==3
   if i<=D
-    A = x(:,i);                                                     % derivative
+    m = x(:,i);                                                     % derivative
   else
-    A = zeros(n,1);
+    m = zeros(n,1);
   end
 else
-  A = zeros(size(x,1),1);                                              % hessian
+  m = zeros(size(x,1),1);                                              % hessian
 end
