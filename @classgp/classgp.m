@@ -9,11 +9,9 @@ classdef classgp < matlab.mixin.Copyable
     
     % the following matrices are stored for the sake of efficiency
     alpha;
-    invK; % inv K matrix with noise
+    invK;
     invK_dK_alpha;
     invK_dmu;
-%     dK_alpha;
-
   end
   
   properties (Access = public)
@@ -38,6 +36,8 @@ classdef classgp < matlab.mixin.Copyable
     [f, df] = oneStepLookahead(this, xs)
     [x, y] = getTrainSet(this)
     [x, y] = getMin(this)
+%     k = covariance(this, x1, x2); % temporary, to be removed later
+%     k = correlation(this, x1, x2); % temporary, to be removed later
     
     function obj = classgp(trainX, trainY)
       obj.X = trainX;

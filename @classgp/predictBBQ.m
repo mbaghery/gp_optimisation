@@ -9,7 +9,8 @@ function [m, k, Dm, Dk] = predictBBQ(this, xs)
     [m, k, Dm, Dk] = this.predictMAP(xs);
   end
   
-  noHP = numel(this.hyp.mean) + numel(this.hyp.cov); % no. of hyper parameters
+  % no. of hyper parameters
+  noHP = numel(this.hyp.mean) + numel(this.hyp.cov);
   
   % REDUNDANT, this line should be removed some way
   Ks = feval(this.cov{:}, this.hyp.cov, this.X, xs)';
@@ -28,12 +29,13 @@ function [m, k, Dm, Dk] = predictBBQ(this, xs)
   
   
   
-%   k = k + sum((dmStar(:,end-numel(this.hyp.cov)+1:end-1) * ...
-%     this.LaplaceCov) .* dmStar(:,end-numel(this.hyp.cov)+1:end-1), 2);
+  k = k + sum((dmStar(:,end-numel(this.hyp.cov)+1:end-1) * ...
+    this.LaplaceCov) .* dmStar(:,end-numel(this.hyp.cov)+1:end-1), 2);
   
-  k = k + sum((dmStar * this.LaplaceCov) .* dmStar, 2);
+%   k = k + sum((dmStar * this.LaplaceCov) .* dmStar, 2);
 
-  
+  % remove negative values, as they are meaningless
+  k(k < 0) = 0;
   
   
   % calculate the derivatives only if they are needed
@@ -63,10 +65,10 @@ function [m, k, Dm, Dk] = predictBBQ(this, xs)
     end
     
     
-%     Dk(i,:) = Dk(i,:) + 2 * dmStar(i,end-numel(this.hyp.cov)+1:end-1) * ...
-%       this.LaplaceCov * dDmStar(end-numel(this.hyp.cov)+1:end-1,:);
+    Dk(i,:) = Dk(i,:) + 2 * dmStar(i,end-numel(this.hyp.cov)+1:end-1) * ...
+      this.LaplaceCov * dDmStar(end-numel(this.hyp.cov)+1:end-1,:);
     
-    Dk(i,:) = Dk(i,:) + 2 * dmStar(i,:) * this.LaplaceCov * dDmStar;
+%     Dk(i,:) = Dk(i,:) + 2 * dmStar(i,:) * this.LaplaceCov * dDmStar;
   end
   
   

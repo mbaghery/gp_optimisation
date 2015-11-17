@@ -84,7 +84,6 @@ function [l, dl, ddl] = infer(this, hyp)
 
   for i = 1:numel(hyp.cov)
     dK_alpha(:,i) = dK(:,:,i) * this.alpha;
-%     dK_invK(:,:,i) = dK(:,:,i) * this.invK;
     invK_dK(:,:,i) = this.invK * dK(:,:,i);
   end
   
@@ -97,7 +96,6 @@ function [l, dl, ddl] = infer(this, hyp)
     for j = i:numel(hyp.mean)
       ddm = feval(this.mean{:}, hyp.mean, this.X, i, j);
       
-%       ddl(i,j) = dmu(:,i)' * this.invK * dmu(:,j) - ddm' * this.alpha;
       ddl(i,j) = invK_dmu(:,i)' * dmu(:,j) - ddm' * this.alpha;
       
       % the hessian matrix is symmetric
@@ -108,11 +106,9 @@ function [l, dl, ddl] = infer(this, hyp)
   
 % with respect to mean and covariance hp
   for i = 1:numel(hyp.cov)
-%     dK_invK_alpha(:,i) = (this.alpha' * dK_invK(:,:,i))';
     invK_dK_alpha(:,i) = invK_dK(:,:,i) * this.alpha;
     
     for j = 1:numel(hyp.mean)
-%       ddl(i + numel(hyp.mean),j) = dK_invK_alpha(:,i)' * dmu(:,j);
       ddl(i + numel(hyp.mean),j) = dmu(:,j)' * invK_dK_alpha(:,i);
       
       % the hessian matrix is symmetric
@@ -127,15 +123,10 @@ function [l, dl, ddl] = infer(this, hyp)
       ddK = feval(this.cov{:}, hyp.cov, this.X, [], i, j);
       Q = 2 * dK_alpha(:,i) * dK_alpha(:,j)' + ddK;
       
-%       ddl(i + numel(hyp.mean), j + numel(hyp.mean)) = (...
-%         sum(sum(Q .* this.invK - dK_invK(:,:,i)' .* dK_invK(:,:,j))) ...
-%         - this.alpha' * ddK * this.alpha ) / 2;
-
-        ddl(i + numel(hyp.mean), j + numel(hyp.mean)) = (...
-          sum(sum(Q .* this.invK - invK_dK(:,:,i) .* invK_dK(:,:,j)')) ...
-          - this.alpha' * ddK * this.alpha ) / 2;
-        
-        
+      ddl(i + numel(hyp.mean), j + numel(hyp.mean)) = (...
+        sum(sum(Q .* this.invK - invK_dK(:,:,i) .* invK_dK(:,:,j)')) ...
+        - this.alpha' * ddK * this.alpha ) / 2;
+      
       % the hessian matrix is symmetric
       ddl(j + numel(hyp.mean),i + numel(hyp.mean)) = ...
         ddl(i + numel(hyp.mean),j + numel(hyp.mean));
@@ -144,13 +135,13 @@ function [l, dl, ddl] = infer(this, hyp)
   
   this.invK_dmu = invK_dmu;
   this.invK_dK_alpha = invK_dK_alpha;
-%   this.dK_alpha = dK_alpha;
   
   
   % it is assumed that only the input correlation lengths are important
-%   this.hessian = ddl(end-numel(hyp.cov)+1:end-1,end-numel(hyp.cov)+1:end-1) ...
-%     \ eye(numel(hyp.cov)-1);
+  this.LaplaceCov = ...
+    ddl(end-numel(hyp.cov)+1:end-1, end-numel(hyp.cov)+1:end-1) ...
+    \ eye(numel(hyp.cov)-1);
   
-  this.LaplaceCov = ddl \ eye(noHP);
+%   this.LaplaceCov = ddl \ eye(noHP);
   
 end

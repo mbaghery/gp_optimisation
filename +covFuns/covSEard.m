@@ -36,9 +36,9 @@ if dg                                                               % vector kxx
   K = zeros(size(x,1),1);
 else
   if xeqz                                                 % symmetric matrix Kxx
-    K = sq_dist(diag(1./ell)*x');
+    K = util.sq_dist(diag(1./ell)*x');
   else                                                   % cross covariances Kxz
-    K = sq_dist(diag(1./ell)*x',diag(1./ell)*z');
+    K = util.sq_dist(diag(1./ell)*x',diag(1./ell)*z');
   end
 end
 
@@ -50,9 +50,9 @@ if nargin>3                                                        % derivatives
       return;
     else
       if xeqz
-        K = K.*sq_dist(x(:,i)'/ell(i));
+        K = K .* util.sq_dist(x(:,i)'/ell(i));
       else
-        K = K.*sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
+        K = K .* util.sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
       end
     end
   elseif i==D+1                                            % magnitude parameter
@@ -68,15 +68,15 @@ if nargin>4                                                            % hessian
     if j<=D % with respect to ell_i and ell_j
       if i==j
         if xeqz
-          K = K.*(sq_dist(x(:,j)'/ell(j))-2);
+          K = K .* (util.sq_dist(x(:,j)'/ell(j))-2);
         else
-          K = K.*(sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))-2);
+          K = K .* (util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))-2);
         end
       else
         if xeqz
-          K = K.*sq_dist(x(:,j)'/ell(j));
+          K = K .* util.sq_dist(x(:,j)'/ell(j));
         else
-          K = K.*sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
+          K = K .* util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
         end
       end
     elseif j==D+1 % with respect to ell_i and sf
@@ -87,9 +87,9 @@ if nargin>4                                                            % hessian
   elseif i==D+1
     if j<=D % with respect to sf and ell_j
       if xeqz
-        K = K.*sq_dist(x(:,j)'/ell(j));
+        K = K .* util.sq_dist(x(:,j)'/ell(j));
       else
-        K = K.*sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
+        K = K .* util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
       end
     elseif j==D+1 % with respect to sf and sf
       K = 2*K;
