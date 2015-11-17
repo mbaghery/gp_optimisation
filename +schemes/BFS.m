@@ -2,8 +2,6 @@ function x = BFS(gp, domain, noPoints)
 %BFS Breadth-first search type of thing
 %   Detailed explanation goes here
 
-  noTries = noPoints * 5;
-
   problem.lb = domain.min;
   problem.ub = domain.max;
   problem.solver = 'fmincon';
@@ -11,19 +9,32 @@ function x = BFS(gp, domain, noPoints)
     'GradObj', 'on', 'MaxIter', 100, 'Display', 'none');
   problem.objective = @(x) gp.oneStepLookahead(x);
 
-  xTemp = zeros(noTries, gp.noFeatures);
+  x = zeros(noPoints, gp.noFeatures);
+  noFound = 0;
   
-  for i = 1:noTries
+  xTrainSet = gp.getTrainSet;
+  
+  for i = 1:1000
     problem.x0 = util.randbox(domain, 1);
-    xTemp(i,:) = fmincon(problem);
+    xTemp = fmincon(problem);
+    
+    if (min(util.sq_dist(xTrainSet', xTemp')) > 1e-3)
+      noFound = noFound + 1;
+      x(noFound, :) = xTemp;
+      disp(num2str(noFound));
+    end
+    
+    if (noFound >= noPoints)
+      break
+    end
   end
 
   % I'm not so happy with the next line, it basically means two testing
   % points cannot be closer that 0.01
 %   xTemp = unique(floor(xTemp * 100) / 100);
 
-  costTemp = gp.oneStepLookahead(xTemp);
-  [~,idx] = sort(costTemp);
-  x = xTemp(idx(1:noPoints), :);
+%   costTemp = gp.oneStepLookahead(x);
+%   [~,idx] = sort(costTemp);
+%   x = x(idx(1:noPoints), :);
   
 end
