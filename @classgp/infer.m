@@ -4,6 +4,8 @@ function [l, dl, ddl] = infer(this, hyp)
 %   
 %   first derivatives with respect to mean hyperparameters appear and then
 %   derivatives with respect to covariance function hyperparameters.
+%
+%   Based on infExact by Rasmussen.
 
   this.hyp = hyp;
   
@@ -14,8 +16,8 @@ function [l, dl, ddl] = infer(this, hyp)
 
   N = length(this.Y);
 
-  % very small sn2 can cause numerical instabilities; I don't know what
-  % this is exactly supposed to mean
+  % very small sn2 can cause numerical instabilities; I don't know exactly
+  % what this is supposed to mean
   if (sn2 < 1e-6)
     L = chol(K + sn2 * eye(N));
     denominator = 1;
@@ -30,15 +32,15 @@ function [l, dl, ddl] = infer(this, hyp)
   
   
   
-
+  
   % - log likelihood
   l = 1/2 * (this.Y - M)' * this.alpha ...
-     + log(prod(diag(L)))...
+     + sum(log(diag(L)))...
      + N/2 * log(2 * pi * denominator);
   
   
   % calculate the derivatives only if they are needed
-  if (nargout<=1)
+  if (nargout <= 1)
     return
   end
   
@@ -64,7 +66,7 @@ function [l, dl, ddl] = infer(this, hyp)
   
   
   % calculate the hessian only if it is needed
-  if (nargout<=2)
+  if (nargout <= 2)
     return
   end
   

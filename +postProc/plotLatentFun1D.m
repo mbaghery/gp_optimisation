@@ -1,4 +1,4 @@
-function plotLatentFun(gp, f, domain, range, xNext)
+function plotLatentFun1D(gp, f, domain, range, xNext)
   % Plot the latent function of the gaussian process
   % this function only works for noFeatures = 1
 
@@ -25,7 +25,8 @@ function plotLatentFun(gp, f, domain, range, xNext)
 
   % Plot estimate by GP
   myvarianceplot(xPlot, yGP, sqrt(kGP));
-  % break
+  
+  
   hold on
 
   colors = [94,129,181;

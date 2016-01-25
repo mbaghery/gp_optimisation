@@ -11,21 +11,22 @@ function output = optimise(this, hyp)
 %   
 %   output = minimize(hyp2, @gp, -300, ...
 %     inf, this.mean, this.cov, lik, this.X, this.Y);
-%   
+  
 
 
 	% My method
+  problem.x0 = [hyp.mean; hyp.cov];
   problem.solver = 'fmincon';
   problem.options = optimoptions('fmincon', ...
-    'GradObj', 'on', 'Hessian','user-supplied', ...
+    'GradObj', 'on', ...
+    'Hessian','on', ...
     'Algorithm', 'trust-region-reflective', ...
-    'MaxIter', 100, 'Display', 'none');
-
-  problem.x0 = [hyp.mean; hyp.cov];
+    'MaxIter', 100, ...
+    'Display', 'none');
   
   problem.objective = @(x) this.infer( ...
     struct('mean',x(1:length(hyp.mean)), ...
-           'cov' ,x(length(hyp.mean)+1:end)));
+           'cov' ,x(length(hyp.mean)+1:end)) );
   
   out = fmincon(problem);
   
@@ -33,8 +34,7 @@ function output = optimise(this, hyp)
   output.cov = out(length(hyp.mean)+1:end);
   
   
-  
   % For both methods
-  % This line is necessary to update all temporary variables in classgp
+  % This line is necessary to update all private variables in classgp
   [~,~,~] = this.infer(output);
 end

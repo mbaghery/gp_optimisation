@@ -1,7 +1,7 @@
 clear all; clc;
 
 noWorkers = 20;
-noLoops = 25;
+noLoops = 5;
 noFeatures = 2;
 
 filename = 'Ackley2.mat';
@@ -13,10 +13,6 @@ range.max = 5;
 % set the hypercube limits
 domain.min = -30 * ones(1, noFeatures);
 domain.max = 30 * ones(1, noFeatures);
-
-% randFun=@(m) bsxfun(@plus, bsxfun(@times, rand(m, noFeatures), ...
-%   (domain.max - domain.min)), domain.min);
-
 
 % the goal function
 % f = @(x) log(testFuns.griewank(x));
@@ -36,45 +32,67 @@ Y = f(X);
 % break
 
 %% Set up the gp instnace
-disp('Set up the gp instance');
-setGP;
+disp('Set up the gp');
 
+% normalization
+Y = util.normalise(Y, range);
 
-% hess=@(x) exp(-gpinstance.infer(struct('mean',x(1),'cov',x(2:end))));
-% hesslog=@(x) gpinstance.infer(struct('mean',x(1),'cov',x(2:end)));
-% hypopt=gpinstance.hyp;
-% clc
-% xx=linspace(domain.min, domain.max, 500)';
-% [m,k] = gpinstance.predictMAP(xx);
-% [m2,k2] = gpinstance.predictBBQ(xx);
-% figure, plot(xx,k2,'b', xx,dk2,'r', xx(1:end-1)+(domain.max-domain.min)/1000,diff(k2)*500/(domain.max-domain.min))
-% figure, plot(xx,k,'b',xx,k2,'r')
-% figure, myvarianceplot(xx,m,sqrt(k));
-% figure, myvarianceplot(xx,m2,sqrt(k2));
+gpinstance = classgp(X, Y);
 
+sn = util.normalise(0.02, range, true);
+gpinstance.uncertainty = log(sn);
 
-% fun = @(x) covDFuns.covSEardD(x, [1,1,1], [1.5,2,1.1]) * [0;1;0];
-% gradest(fun, gpinstance.hyp.cov)
-% covDFuns.covSEardD(gpinstance.hyp.cov, [1,1,1], [1.5,2,1.1])
+gpinstance.mean = {@meanFuns.meanZero};
+gpinstance.meanD = {@meanDFuns.meanZeroD};
 
+gpinstance.cov = {@covFuns.covSEard};
+gpinstance.covD = {@covDFuns.covSEardD};
 
+% mean function hyperparameters
+hyp.mean=[];
 
-% break
+% covariance function hyperparameters
+%     [log(lambda_1); ...; log(lambda_n); log(sf)]
+hyp.cov = [log(1) * ones(noFeatures, 1); 1];
+
+gpinstance.optimise(hyp);
+
 
 %% Optimization algorithm
-disp('Optimization algorithm');
+
+problem.x0 = [0,0];
+problem.lb = domain.min;
+problem.ub = domain.max;
+problem.solver = 'fmincon';
+problem.options = optimoptions('fmincon', ...
+                               'GradObj', 'on', ...
+                               'MaxIter', 100, ...
+                               'Display', 'none');
+problem.objective = @(x) gpinstance.oneStepLookahead(x);
+
+% MultiStart Object
+ms = MultiStart('Display', 'off', ...
+                'TolX', 1e-3);
+
 
 % bias defined according to arXiv:1507.04964 = bias*mean-(1-bias)*sigma
 % bias = linspace(0.5, 1, noWorkers);
 
 for l = 1:noLoops
-  disp(['Start of round ' num2str(l)]);
+  disp(['Round ' num2str(l) ' ... Start']);
   
   % australian scheme
 %   x = schemes.australia(noWorkers, gpinstance, problem, randFun);
 
   % depth-first search scheme
-  xNext = schemes.BFS(gpinstance, domain, noWorkers);
+%   xNext = schemes.BFS(gpinstance, domain, noWorkers);
+  
+
+  % find the next x to evaluate
+  [~,~,~,~,mins] = ms.run(problem, 10 * noWorkers);
+  
+  % the results are already sorted
+  xNext = cell2mat({mins(1:noWorkers).X}');
   
   disp('next x found');
 
@@ -97,9 +115,9 @@ for l = 1:noLoops
   yNext = util.normalise(yNext, range);
   
   gpinstance.addTrainPoints(xNext, yNext);
-  
-  
   gpinstance.optimise(hyp);
+  
+  disp(['Round ' num2str(l) ' ... End']);
 end
 
 xNext = [];
@@ -111,7 +129,7 @@ yNext = [];
 finalY = util.denormalise(finalY, range);
 
 % figure
-% postProc.plotLatentFun(gpinstance, f, domain, range, xNext);
+postProc.plotLatentFun2D(gpinstance, f, domain, range);
 % drawnow;
 % saveas = ['round' num2str(noLoops+1) '.png'];
 % export_fig(saveas, '-transparent');
