@@ -1,9 +1,9 @@
-function output = randbox(domain, n)
-%RANDBOX Generates random numbers within a box defined by domain
+function output = randbox(m, domain)
+%RANDBOX Generates n random numbers within a box defined by domain
 %   Detailed explanation goes here
 
   output = bsxfun(@plus, ...
-    bsxfun(@times, rand(n, length(domain.max)), (domain.max - domain.min)) ...
-    , domain.min);
+    bsxfun(@times, rand(m, length(domain.max)), ...
+    (domain.max - domain.min)), domain.min);
 
 end

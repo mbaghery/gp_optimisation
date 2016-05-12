@@ -1,7 +1,7 @@
 function output = optimise(this, hyp)
   % optimise the hyperparameters
   
-% % Rasmussen's method
+  % Rasmussen's method
 %   prior.lik = {{@priorDelta}};
 %   inf = {@infPrior,@infExact,prior};
 %   lik = {@likGauss};
@@ -34,7 +34,10 @@ function output = optimise(this, hyp)
   output.cov = out(length(hyp.mean)+1:end);
   
   
-  % For both methods
-  % This line is necessary to update all private variables in classgp
-  [~,~,~] = this.infer(output);
+  % This line is necessary for both methods to update all private
+  % variables in classgp.
+  [l,~,~] = this.infer(output);
+  
+  disp(['-log(Likelihood) = ' num2str(l)]);
+  
 end

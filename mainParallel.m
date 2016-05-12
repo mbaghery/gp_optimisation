@@ -38,7 +38,7 @@ spmd
   for i = 1:trainSetSize/noWorkers
     disp(['loop no. ' num2str(i)]);
     % DistributedY(i) = f(X((labindex - 1) * trainSetSize / noWorkers + i,:));
-    DistY(i) = f(X(i,:));
+    DistY(i) = f(DistX(i,:));
   end
 end
 

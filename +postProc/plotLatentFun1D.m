@@ -43,14 +43,14 @@ function plotLatentFun1D(gp, f, domain, range, xNext)
             102,133,217;
             249,159,18;
             188,91,128;
-            71,183,109];
+            71,183,109]/256;
 
   % ground truth
   plot(xPlot, yGroundTruth, '-k', ...
     'LineWidth', 1.5);
 
   % evaluated points so far
-  plot(xTrainSet,yTrainSet,'+', ...
+  plot(xTrainSet,yTrainSet, '+', ...
     'Color', colors(4,:), 'MarkerSize', 8, 'LineWidth', 2);
 
   % onestep lookahead cost
@@ -58,7 +58,7 @@ function plotLatentFun1D(gp, f, domain, range, xNext)
     'Color', 'r', 'LineWidth', 2);
 
   % next points
-  plot(x,yNext,'o', ...
+  plot(xNext, yNext,'o', ...
     'Color', colors(8,:), 'LineWidth', 2, 'MarkerSize', 20);
 
   hold off

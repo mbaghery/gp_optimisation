@@ -31,7 +31,7 @@ function [f, df] = oneStepLookahead(this, xs)
   normalPDF = exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k);
 
   f = eta ...
-    + normalCDF .* (m-eta) ...
+    + normalCDF .* (m - eta) ...
     - normalPDF .* k;
 
 
@@ -47,10 +47,10 @@ function [f, df] = oneStepLookahead(this, xs)
 %        -1/2 * bsxfun(@times, dk, exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k));
 
   df = bsxfun(@times, normalCDF, dm) ...
-     - bsxfun(@times, normalPDF, 0.5*dk);
+     - bsxfun(@times, normalPDF, 0.5 * dk);
 
   % sometimes k could be zero, which leads to NaN. Therefore, let's kill
-  % them bitches
+  % them bitches all
   df(isnan(df))=0;
 
 end

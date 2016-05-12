@@ -27,10 +27,9 @@ function [l, dl, ddl] = infer(this, hyp)
   end
   
   % inverse of K matrix with noise
-  this.invK = solve_chol(L, eye(N)) / denominator;
+%   this.invK = util.solve_chol(L, eye(N)) / denominator;
+  this.invK = L\(L'\eye(N)) / denominator;
   this.alpha = this.invK * (this.Y - M);
-  
-  
   
   
   % - log likelihood
