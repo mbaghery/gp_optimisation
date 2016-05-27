@@ -31,13 +31,12 @@ classdef classgp < matlab.mixin.Copyable
     [l, dl, ddl] = infer(this, hyp)
     output = optimise(this, hyp)
     addTrainPoints(this, xs, ys)
-    [m, s, dm, ds] = predictMAP(this, xs)
-    [m, s, dm, ds] = predictBBQ(this, xs)
+    varargout = predictMAP(this, xs)
+    varargout = predictAffine(this, xs)
+    varargout = predictTaylor(this, xs)
     [f, df] = oneStepLookahead(this, xs)
     [x, y] = getTrainSet(this)
     [x, y] = getMin(this)
-%     k = covariance(this, x1, x2); % temporary, to be removed later
-%     k = correlation(this, x1, x2); % temporary, to be removed later
     
     function obj = classgp(trainX, trainY)
       obj.X = trainX;

@@ -1,16 +1,16 @@
-function [f, df] = oneStepLookahead(this, xs)
+function [f, Df] = oneStepLookahead(this, xs)
 %ONESTEPLOOKAHEAD Gives the next probable point to evaluate
 %   Based on paper: Gaussian processes for global optimization, Osborne,
 %   et al.
 
   if (isempty(xs))
     f=[];
-    df=[];
+    Df=[];
     return
   end
 
-  [m, k, dm, dk] = this.predictMAP(xs);
-%   [m, k, dm, dk] = this.predictAffine(xs);
+%   [m, k, Dm, Dk] = this.predictMAP(xs);
+  [m, k, Dm, Dk] = this.predictAffine(xs);
 
   eta = min(this.Y);
 
@@ -20,8 +20,6 @@ function [f, df] = oneStepLookahead(this, xs)
 
 %   f = 1/2 * (m + eta - sqrt(2/pi)*s.*exp(-(m-eta).^2./(2*s.^2)) ...
 %     + (eta-m).*erf((m-eta)./(sqrt(2)*s)));
-
-
 %   f = 1/2 * (eta + m) ...
 %     + 1/2 * (eta - m) .* erf((m-eta) ./ sqrt(2*k)) ...
 %     - sqrt(k / (2*pi)) .* exp(-(m-eta).^2 ./ (2*k));
@@ -40,18 +38,17 @@ function [f, df] = oneStepLookahead(this, xs)
     return
   end
 
-%   df =  -1/2 * bsxfun(@times, dm, erf((m-eta)./(sqrt(2)*s))-1) ...
+%   df =  -1/2 * bsxfun(@times, Dm, erf((m-eta)./(sqrt(2)*s))-1) ...
 %    - bsxfun(@times, ds, exp(-(eta - m).^2./(2*s.^2))/sqrt(2*pi));
+%   df = -1/2 * bsxfun(@times, Dm, erf((m-eta) ./ sqrt(2*k)) - 1) ...
+%        -1/2 * bsxfun(@times, Dk, exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k));
 
-%   df = -1/2 * bsxfun(@times, dm, erf((m-eta) ./ sqrt(2*k)) - 1) ...
-%        -1/2 * bsxfun(@times, dk, exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k));
-
-  df = bsxfun(@times, normalCDF, dm) ...
-     - bsxfun(@times, normalPDF, 0.5 * dk);
+  Df = bsxfun(@times, normalCDF, Dm) ...
+     - bsxfun(@times, normalPDF, 0.5 * Dk);
 
   % sometimes k could be zero, which leads to NaN. Therefore, let's kill
   % them bitches all
-  df(isnan(df))=0;
+  Df(isnan(Df))=0;
 
 end
   

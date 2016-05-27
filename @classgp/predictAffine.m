@@ -2,7 +2,7 @@ function varargout = predictAffine(this, xs)
 %PREDICTAFFINE Predictive probability based on affine assumption
 %   xs is a matrix whose rows are test points
   
-  if (nargout<3)
+  if (nargout < 4)
     [m, k, Ks] = this.predictMAP(xs);
   else
     [m, k, Dm, Dk, Ks, DKs] = this.predictMAP(xs);
@@ -32,7 +32,7 @@ function varargout = predictAffine(this, xs)
   k = k + sum((dm(:,end-numel(this.hyp.cov)+1:end-1) * ...
     this.LaplaceCov) .* dm(:,end-numel(this.hyp.cov)+1:end-1), 2);
   
-%   k = k + sum((dmStar * this.LaplaceCov) .* dmStar, 2);
+%   k = k + sum((dm * this.LaplaceCov) .* dm, 2);
 
   % remove negative values, as they are meaningless
   k(k < 0) = 0;
@@ -69,7 +69,7 @@ function varargout = predictAffine(this, xs)
     Dk(i,:) = Dk(i,:) + 2 * dm(i,end-numel(this.hyp.cov)+1:end-1) * ...
       this.LaplaceCov * dDm(end-numel(this.hyp.cov)+1:end-1,:);
     
-%     Dk(i,:) = Dk(i,:) + 2 * dmStar(i,:) * this.LaplaceCov * dDmStar;
+%     Dk(i,:) = Dk(i,:) + 2 * dm(i,:) * this.LaplaceCov * dDm;
   end
   
   varargout = {m, k, Dm, Dk, Ks, DKs};

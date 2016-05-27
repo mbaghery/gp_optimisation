@@ -6,6 +6,10 @@ function [l, dl, ddl] = infer(this, hyp)
 %   derivatives with respect to covariance function hyperparameters.
 %
 %   Based on infExact by Rasmussen.
+%
+%   Throughout this package, if the name of a variable begins with 'd' it
+%   is derivative with respect to hyperparameters, but if it begin with 'D'
+%   it is derivative with respect to xs.
 
   this.hyp = hyp;
   
@@ -76,8 +80,8 @@ function [l, dl, ddl] = infer(this, hyp)
   dK_alpha = zeros(size(this.X, 1), numel(hyp.cov));
   invK_dK = zeros(size(this.X, 1), size(this.X, 1), numel(hyp.cov));
   
-  invK_dmu = zeros(size(this.X, 1), numel(hyp.mean));
-  invK_dK_alpha = zeros(size(this.X, 1), numel(hyp.cov));
+  this.invK_dmu = zeros(size(this.X, 1), numel(hyp.mean));
+  this.invK_dK_alpha = zeros(size(this.X, 1), numel(hyp.cov));
   
   for i = 1:numel(hyp.mean)
     dmu(:,i) = feval(this.mean{:}, hyp.mean, this.X, i);
@@ -92,12 +96,12 @@ function [l, dl, ddl] = infer(this, hyp)
   % with respect to mean hp only
   for i = 1:numel(hyp.mean)
     
-    invK_dmu(:,i) = this.invK * dmu(:,i);
+    this.invK_dmu(:,i) = this.invK * dmu(:,i);
     
     for j = i:numel(hyp.mean)
-      ddm = feval(this.mean{:}, hyp.mean, this.X, i, j);
+      ddmu = feval(this.mean{:}, hyp.mean, this.X, i, j);
       
-      ddl(i,j) = invK_dmu(:,i)' * dmu(:,j) - ddm' * this.alpha;
+      ddl(i,j) = this.invK_dmu(:,i)' * dmu(:,j) - ddmu' * this.alpha;
       
       % the hessian matrix is symmetric
       ddl(j,i) = ddl(i,j);
@@ -107,10 +111,10 @@ function [l, dl, ddl] = infer(this, hyp)
   
 % with respect to mean and covariance hp
   for i = 1:numel(hyp.cov)
-    invK_dK_alpha(:,i) = invK_dK(:,:,i) * this.alpha;
+    this.invK_dK_alpha(:,i) = invK_dK(:,:,i) * this.alpha;
     
     for j = 1:numel(hyp.mean)
-      ddl(i + numel(hyp.mean),j) = dmu(:,j)' * invK_dK_alpha(:,i);
+      ddl(i + numel(hyp.mean),j) = dmu(:,j)' * this.invK_dK_alpha(:,i);
       
       % the hessian matrix is symmetric
       ddl(j,i + numel(hyp.mean)) = ddl(i + numel(hyp.mean),j);
@@ -134,8 +138,8 @@ function [l, dl, ddl] = infer(this, hyp)
     end
   end
   
-  this.invK_dmu = invK_dmu;
-  this.invK_dK_alpha = invK_dK_alpha;
+%   this.invK_dmu = invK_dmu;
+%   this.invK_dK_alpha = invK_dK_alpha;
   
   
   % it is assumed that only the input correlation lengths are important

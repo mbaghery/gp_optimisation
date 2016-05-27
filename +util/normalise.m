@@ -3,6 +3,7 @@ function Y = normalise(Y, range, noShift)
 %   if noShift is true, then the mean of Y is not shifted to zero, it is
 %   merely multiplied by a constant to rescale the range to 10.
 
+
   if (nargin == 2)
     noShift = false;
   end

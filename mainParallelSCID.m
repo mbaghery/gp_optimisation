@@ -19,8 +19,8 @@ range.max = 1;
 domain.min = -1 * ones(1, noFeatures);
 domain.max = 1 * ones(1, noFeatures);
 
-% the goal function
-f = @(weights) patchkovskii(weights);
+% the target function
+f = @targetFuns.patchkovskii;
 
 % random number generator
 r = @util.unisphrand;
@@ -57,7 +57,7 @@ trainY = util.normalise(trainY, range);
 
 gpinstance = classgp(trainX, trainY);
 
-sn = util.normalise(0.01, range, true);
+sn = 0.1; %util.normalise(0.01, range, true);
 gpinstance.uncertainty = log(sn);
 
 gpinstance.mean = {@meanFuns.meanConst};

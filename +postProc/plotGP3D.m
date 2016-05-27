@@ -14,6 +14,7 @@ function plotGP3D(gp, radius, range, xNext)
   % GP estimate of the latent function
   yGP = gp.predictMAP([x1(:),x2(:),x3(:)]);
 %   yGP = gp.oneStepLookahead([x1(:),x2(:),x3(:)]);
+
   yGP = reshape(util.denormalise(yGP, range), size(x1));
 %   yGP = reshape(yGP, size(x1));
 
@@ -33,9 +34,9 @@ function plotGP3D(gp, radius, range, xNext)
     'MarkerSize', 8, 'LineWidth', 2, 'Color', 'black');
   hold off
 
-  return
+
   % next points, if given
-  if (nargin<5)
+  if (nargin<4)
     return
   end
   hold on

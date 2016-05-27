@@ -1,4 +1,4 @@
-function varargout = predictMAP(this, xs)
+function [varargout] = predictMAP(this, xs)
 %PREDICTMAP Predictive probability based on MAP approximation
 %   xs is a matrix whose rows are test points
 %   If only 'm' and 'k' are wanted, Ks will be passed as the third output

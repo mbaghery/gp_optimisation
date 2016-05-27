@@ -7,7 +7,7 @@
 # h_fsize : File size limit (eg. h_fsize=12G);
 # h_cpu : CPU time limit (eg. h_cpu=10:00:00 HH:MM:SS);
 # hw : I don't know
-#$ -l h_rss=32G,h_fsize=80G,h_cpu=150:00:00,hw=x86_64,ps=haswell
+#$ -l h_rss=4G,h_fsize=5G,h_cpu=150:00:00,hw=x86_64,ps=haswell
 #$ -M mbaghery@pks.mpg.de
 
 # Specify the parallel environment and the necessary number of slots (cpus)
@@ -16,13 +16,13 @@
 # no space is acceptable before or after '=' below
 noFeatures="3"
 
-A0=3.00
-omega=2.00
+A0=1.00
+omega=1.00
 FWHM=25
 
 source="$HOME/Documents/MATLAB/Optimisation"
 scratch="/scratch/$USER/matlab-"$noFeatures"D_"$A0"_"$omega"_"$FWHM
-results="/data2/finite/mbaghery/minionization-"$noFeatures"D_"$A0"_"$omega"_"$FWHM
+results="/data2/finite/mbaghery/maxionization-"$noFeatures"D_"$A0"_"$omega"_"$FWHM
 ###cache="/data2/finite/mbaghery/SCID_5000_0.4"
 
 hostname
