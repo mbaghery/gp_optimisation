@@ -1,16 +1,25 @@
 function plotPES(spectrum, params, delta, gamma)
 %   spectrum is the output of extractSpec
+%   spectrum is a 3D matrix, whose 3rd dimension is determined by lmax.
+%   The size of the first dimension is determined by nradial.
+%   The second dimension consists of:
+%       Re[E],Im[E],Re[Wgt],Im[Wgt],Re[<I|W>],Im[<I|W>],Re[<W|I>],Im[<W|I>]
 
   for i = 0:params.lmax
-    plot(spectrum(:,1,i + 1), spectrum(:,3,i + 1), '-', 'LineWidth', 1.5);
+    energyDensity = [ones(sum(spectrum(:,1,i + 1)<0,1),1); diff(spectrum(spectrum(:,1,i + 1)>=0,1,i + 1))];
+    energyDensity = [energyDensity; energyDensity(end)];
+    
+    plot(spectrum(:,1,i + 1), spectrum(:,3,i + 1) ./ energyDensity, ...
+      '-', 'LineWidth', 1.5);
     hold on;
   end
 
   set(gcf, 'Position', [300 300 600 400]);
-  set(gca, 'YScale', 'Log');
+%   set(gca, 'YScale', 'Log');
   grid on;
-  xlim([-0.5, 2]);
-  ylim([1e-6,1]);
+  xlim([0.2, 0.4]);
+%   ylim([0,20]);
+%   ylim([1e-6,1e2]);
 
 
   % tau is taken from the paper by Demekhin & Cederbaum

@@ -1,4 +1,4 @@
-function output = patchkovskii(weights)
+function output = targetYield(weights)
 %PATCHKOVSKII Runs SCID TDSE and returns the desired output
 %   Detailed explanation goes here
 
@@ -26,12 +26,9 @@ function output = patchkovskii(weights)
   % 'ulimit -s umlimited; ' ...
   system(['./spherical_tdse.x < ' inputFile ' > ' outputFile ' 2>&1']);
   
-  params = targetFuns.extractParams(outputFile);
   
+  params = targetFuns.extractParams(outputFile);
   output = 1 - targetFuns.elecYield(targetFuns.extractSpec(outputFile, params));
-
-%   [north, south] = targetFuns.hemispheres(targetFuns.extractWF(wfPrefix, params));
-%   output = real(north - south);
   
 end
 

@@ -3,7 +3,7 @@ function [north, south] = hemispheres(wf)
 %   The output can be complex due to right and left wavefunctions, but the
 %   real part is to be taken seriously. In other words, if the complex part
 %   is too big, it means the simulation parameters have not been chosen
-%   accurately, e.g. too big dr, too big dt, etc.
+%   properly, e.g. too big dr, too big dt, etc.
 %   wf: 1st and 2nd dimensions:
 %           R, Re[left wfn], Im[left wfn], Re[right wfn], Im[right wfn]
 %       3rd dimension: l

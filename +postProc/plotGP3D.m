@@ -1,18 +1,15 @@
-function plotGP3D(gp, radius, range, xNext)
+function plotGP3D(gp, range, xNext)
   % Plot the gaussian process, only if the training points are on a
   % sphere, with the colourcoding representing their target values.
   % this function only works for noFeatures = 3
 
   [x1, x2, x3] = sphere(300);
-  x1 = radius * x1;
-  x2 = radius * x2;
-  x3 = radius * x3;
   
   % evaluated points so far
   xTrainSet = gp.getTrainSet;
 
   % GP estimate of the latent function
-  yGP = gp.predictMAP([x1(:),x2(:),x3(:)]);
+  yGP = gp.predictAffine([x1(:),x2(:),x3(:)]);
 %   yGP = gp.oneStepLookahead([x1(:),x2(:),x3(:)]);
 
   yGP = reshape(util.denormalise(yGP, range), size(x1));
@@ -36,7 +33,7 @@ function plotGP3D(gp, radius, range, xNext)
 
 
   % next points, if given
-  if (nargin<4)
+  if (nargin < 3)
     return
   end
   hold on

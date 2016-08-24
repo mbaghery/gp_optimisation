@@ -54,6 +54,8 @@ function wf = truncateoffBound(wf, params)
       wf(:, 3, l+1) = wf(:, 3, l+1) - imag(temp);
     end
     
+    fclose(f);
+    
   end
 
 end

@@ -1,133 +1,38 @@
 function plotObser(observables, params, delta, gamma)
 
-
-
-%   A = importdata(observables, '\n');
-%   A = char(A);
-%   
-%   A0 = 0;
-%   omega = 0;
-%   FWHM = 0;
-%   
-%   A0_2 = 0;
-%   omega2 = 0;
-%   FWHM2 = 0;
-%   
-%   
-%   
-%   for i = 1:size(A,1)
-%     isfound = strfind(A(i,:), 'VP_SHAPE ');
-% 
-%     if (~isempty(isfound))
-%       temptext = A(i,:);
-%       temptext(strfind(temptext, '=')) = ' ';
-%       temptext = strtrim(temptext);
-%       temptext(1:8) = '';
-%       vp_shape = strtrim(temptext);
-%       
-%       break;
-%     end
-%   end
-%   
-%   
-%   for i = 1:size(A,1)
-%     isfound = strfind(A(i,:), 'VP_SCALE ');
-% 
-%     if (~isempty(isfound))
-%       temptext = A(i,:);
-%       temptext(strfind(temptext, '=')) = ' ';
-%       a = textscan(temptext, '%s %f');
-%       A0 = a{2};
-%       
-%       break;
-%     end
-%   end
-%   
-%   
-%   for i = 1:size(A,1)
-%     isfound = strfind(A(i,:), 'VP_PARAM ');
-% 
-%     if (~isempty(isfound))
-%       temptext = A(i,:);
-%       temptext(strfind(temptext, '=')) = ' ';
-%       temptext(strfind(temptext, ',')) = ' ';
-%       a = textscan(temptext, '%s %f %f %f %f');
-%       omega = a{2};
-%       FWHM = a{5};
-%       simulationLength = a{4} * 2; % because the center of the pulse is in the middle
-%       
-%       break;
-%     end
-%   end
-%   
-%   
-%   if (strcmp(vp_shape, 'z 2QHOStates'))
-%     
-%     for i = 1:size(A,1)
-%       isfound = strfind(A(i,:), 'VP_SCALE_X');
-% 
-%       if (~isempty(isfound))
-%         temptext = A(i,:);
-%         temptext(strfind(temptext, '=')) = ' ';
-%         a = textscan(temptext, '%s %f');
-%         A0_2 = a{2};
-% 
-%         break;
-%       end
-%     end
-% 
-% 
-%     for i = 1:size(A,1)
-%       isfound = strfind(A(i,:), 'VP_PARAM_X');
-% 
-%       if (~isempty(isfound))
-%         temptext = A(i,:);
-%         temptext(strfind(temptext, '=')) = ' ';
-%         temptext(strfind(temptext, ',')) = ' ';
-%         a = textscan(temptext, '%s %f %f %f %f');
-%         omega2 = a{2};
-%         FWHM2 = a{5};
-% 
-%         break;
-%       end
-%     end
-%   
-%   end
-%   
-%   
-%   for i = 1:size(A,1)
-%     isfound = strfind(A(i,:), 'DT');
-% 
-%     if (~isempty(isfound))
-%       temptext = A(i,:);
-%       temptext(strfind(temptext, '=')) = ' ';
-%       a = textscan(temptext, '%s %f');
-%       dt = a{2};
-%       
-%       break;
-%     end
-%   end
-  
-
-%   A(A(:,1) ~= '@',:) = [];
-%   
-%   % time, vector potential, energy, dipole, gs population, phase(gs), es population, phase(es)
-%   B=zeros(size(A,1),6);
-%   formatSpec = '%s%f%s%f%s%f%s%f%s%f%s%f%f%s%f%f%s%f%s%f%s%f%s%f%s%f';
-% 
-%   for i=1:size(A,1)
-%     temp = textscan(A(i,:), formatSpec);
-%     B(i,:) = [temp{4}, temp{6}, temp{15}, temp{18}, temp{20}, temp{22}];
-%   end
-
-
-  phase = observables(:,6) - observables(1,6) + ... % phase - phase@time=0
-    observables(1,3) * observables(:,1); % deduct (energy of gs) * time
-  phase = unwrap(phase);
+  phase_gs = observables(:,6) - observables(1,6) + ... % phase(t) - phase(t=0)
+    (-0.5) * observables(:,1); % deduct (energy of gs) * time
+  phase_gs = unwrap(phase_gs);
   
   
-  patchphase = 0.5 * params.dt * cumsum(observables(:,2).^2);
-  phase = phase + patchphase;
+  phase_es = observables(:,8) - observables(1,8) + ... % phase(t) - phase(t=0)
+    (-0.125) * observables(:,1); % deduct (energy of es) * time
+  phase_es = unwrap(phase_es);
+  
+  
+%   continuumphase = - 0.5 * params.dt * cumsum(observables(:,2).^2);
+%   
+%   
+% plot(observables(:,1),phase,observables(:,1),continuumphase,observables(:,1),continuumphase-phase)
+% grid on
+% xlim([0,observables(end,1)])
+% legend('phase(gs)', 'phase(con)', 'diff', 'Location', 'southwest')
+% xlabel('Time [a.u.]')
+% % ylim([-0.6,0.6])
+% export_fig('phase.pdf', '-transparent');
+%   
+%   
+%   phase = continuumphase - phase;
+  
+  
+  % QUATSCH:
+  % in Patchkowskii package the A(t)^2 term is also included, here I deduct
+  % this term as this phase has no physical consequence. What matters here
+  % is the energy difference between ground state and the continuum state.
+  % Since both of these two terms have this phase added to their phase, the
+  % difference shouldn't contain it.
+%   patchphase = 0.5 * params.dt * cumsum(observables(:,2).^2);
+%   phase = phase + patchphase;
 
   
 %   sigma = FWHM/(2*sqrt(2*log(2)));
@@ -160,14 +65,42 @@ function plotObser(observables, params, delta, gamma)
   
   
   
-  
-
-  h1 = plot(observables(:,1), observables(:,3), '-', 'LineWidth', 1);
-  hold on;
+  % A(t)
   plot(observables(:,1), observables(:,2), '-', 'LineWidth', 1);
-  plot(observables(:,1), observables(:,4), '-', 'LineWidth', 1);
+  hold on;
+  
+%   % dipole operator
+%   plot(observables(:,1), observables(:,4), '-', 'LineWidth', 1);
+  
+  % population of ground state
   plot(observables(:,1), observables(:,5), '-', 'LineWidth', 1);
-  plot(observables(:,1), phase, '-', 'LineWidth', 1);
+  
+  % population of 2p-state
+  plot(observables(:,1), observables(:,7), '-', 'LineWidth', 1);
+  
+  % energy
+  plot(observables(:,1), observables(:,3), '-', 'LineWidth', 1);
+  
+  ylim([-2,2]);
+  
+  yyaxis right
+
+  % ground-state phase
+  plot(observables(:,1), phase_gs, '-b', 'LineWidth', 1);
+  
+  % 2p-state phase
+  plot(observables(:,1), phase_es, '-r', 'LineWidth', 1);
+  
+  
+%   plot(observables(1:end-1,1), -diff(phase)/params.dt, ...
+%     '-', 'LineWidth', 1, 'Color', [0.4660    0.6740    0.1880]);  
+
+  
+%   ylim([-0.1,0.1]);
+%   ylim([-pi,pi]);
+%   ax = gca;
+%   ax.YTick = [-pi, 0, pi];
+%   ax.YTickLabel = {'-\pi','0','\pi'};
 
 
 
@@ -175,10 +108,8 @@ function plotObser(observables, params, delta, gamma)
 %   plot(observables(:,1), fitobject_a(observables(:,1)));
 
 
-  legend('Energy', 'A(t)', '|d(t)|', '|gs|^2', 'phase(gs)', ...
+  legend('A(t)', '|gs|^2', '|2p|^2', 'Energy', 'phase(gs)',  'phase(2p)', ...
     'Location', 'eastoutside');
-
-  uistack(h1, 'top');
   
 
   set(gcf, 'Position', [300 300 600 400]);
