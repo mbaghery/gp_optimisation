@@ -27,8 +27,8 @@ function plotAll(outputFile)
   fit_a = fittype(a, 'coefficients', {'gamma'}, 'independent', {'t'});
   fit_p = fittype(p, 'coefficients', {'delta'}, 'independent', {'t'});
 
-  fitobject_a = fit(observables(:,1),observables(:,7),fit_a,'StartPoint',-0.01);
-  fitobject_p = fit(observables(:,1),phase_es,fit_p,'StartPoint',-0.01);
+  fitobject_a = fit(observables(:,1), observables(:,7), fit_a,'StartPoint', -0.01);
+  fitobject_p = fit(observables(:,1), phase_es,fit_p, 'StartPoint', -0.01);
 
   delta = fitobject_p.delta;
   gamma = fitobject_a.gamma;
@@ -43,7 +43,7 @@ function plotAll(outputFile)
 %   fit_a = fittype(a, 'coefficients', {'gamma','t0'}, 'independent', {'t'});
 %   fitobject_a = fit(observables(:,1),observables(:,5),fit_a,'StartPoint',[-0.01,0]);
 %   gamma = fitobject_a.gamma;
-%   t0=fitobject_a.t0;
+%   t0 = fitobject_a.t0;
   
 
   
@@ -52,15 +52,16 @@ function plotAll(outputFile)
 %   hold on
 %   plot(observables(:,1), a(gamma, t0, observables(:,1)));
   
-  
   export_fig([path '/Obser.pdf'], '-transparent', '-nocrop');
-  
   close all;
   
+  
+  
+  
+  
+  
   spec = targetFuns.extractSpec(outputFile);
-  
   disp(['electron yield: ', num2str(targetFuns.elecYield(spec))]);
-  
   targetFuns.plotPES(spec, params, delta, gamma);
   
 %   hold on
@@ -72,8 +73,17 @@ function plotAll(outputFile)
 %   xlim([0.4,0.8])
   
   export_fig([path '/PES.pdf'], '-transparent', '-nocrop');
-  
   close all;
+  
+  
+  
+  
+  [dipoledot_fft, omega] = targetFuns.hhgSpectrum(observables);
+  targetFuns.plotHHGSpec(dipoledot_fft, omega);
+  export_fig([path '/hhg.pdf'], '-transparent'); %, '-nocrop'
+  close all;
+  
+  
   
   return
   

@@ -1,0 +1,127 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.4' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4154,        119]
+NotebookOptionsPosition[      3772,        101]
+NotebookOutlinePosition[      4111,        116]
+CellTagsIndexPosition[      4068,        113]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ylIntegrals", "=", 
+   RowBox[{"ConstantArray", "[", 
+    RowBox[{"0", ",", 
+     RowBox[{"{", 
+      RowBox[{"30", ",", "30"}], "}"}]}], "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.6725613276185904`*^9, 3.6725613465133963`*^9}, {
+  3.672561929714924*^9, 3.6725619600830803`*^9}, {3.672564656997374*^9, 
+  3.6725646580246353`*^9}, {3.672568917777239*^9, 3.672568922168572*^9}}],
+
+Cell[BoxData[
+ RowBox[{"For", "[", 
+  RowBox[{
+   RowBox[{"l1", "=", "0"}], ",", 
+   RowBox[{"l1", "<", "30"}], ",", 
+   RowBox[{"l1", "++"}], ",", "\[IndentingNewLine]", 
+   RowBox[{"For", "[", 
+    RowBox[{
+     RowBox[{"l2", "=", "0"}], ",", 
+     RowBox[{"l2", "\[LessEqual]", "l1"}], ",", 
+     RowBox[{"l2", "++"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"ylIntegrals", "[", 
+        RowBox[{"[", 
+         RowBox[{
+          RowBox[{"l1", "+", "1"}], ",", 
+          RowBox[{"l2", "+", "1"}]}], "]"}], "]"}], "=", 
+       RowBox[{"Integrate", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"SphericalHarmonicY", "[", 
+           RowBox[{"l1", ",", "0", ",", "\[Theta]", ",", "0"}], "]"}], 
+          RowBox[{"SphericalHarmonicY", "[", 
+           RowBox[{"l2", ",", "0", ",", "\[Theta]", ",", "0"}], "]"}], " ", 
+          RowBox[{"Sin", "[", "\[Theta]", "]"}]}], ",", 
+         RowBox[{"{", 
+          RowBox[{"\[Theta]", ",", 
+           FractionBox["\[Pi]", "2"], ",", "\[Pi]"}], "}"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"ylIntegrals", "[", 
+        RowBox[{"[", 
+         RowBox[{
+          RowBox[{"l2", "+", "1"}], ",", 
+          RowBox[{"l1", "+", "1"}]}], "]"}], "]"}], "=", 
+       RowBox[{"ylIntegrals", "[", 
+        RowBox[{"[", 
+         RowBox[{
+          RowBox[{"l1", "+", "1"}], ",", 
+          RowBox[{"l2", "+", "1"}]}], "]"}], "]"}]}]}]}], 
+    "\[IndentingNewLine]", "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.6725613031460543`*^9, 3.672561410306508*^9}, {
+   3.672561471939082*^9, 3.672561476093961*^9}, {3.6725615794135647`*^9, 
+   3.672561647838953*^9}, {3.672561794825547*^9, 3.672561806017515*^9}, 
+   3.672561964020385*^9, 3.6725646614017363`*^9, {3.67256469485822*^9, 
+   3.6725646975542994`*^9}, 3.672566732140822*^9, {3.672566764093914*^9, 
+   3.6725667643409443`*^9}, 3.672568926658041*^9, {3.672991863204965*^9, 
+   3.672991869044712*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<ylmIntegralsSouth.dat\>\"", ",", " ", 
+   RowBox[{
+    RowBox[{"2", " ", "\[Pi]", " ", "ylIntegrals"}], " ", "//", "N"}], ",", 
+   "\"\<Table\>\""}], "]"}]], "Input",
+ CellChangeTimes->{{3.672562073857308*^9, 3.6725620934770308`*^9}, {
+   3.672562166166379*^9, 3.672562167014448*^9}, {3.672562272192189*^9, 
+   3.672562273808185*^9}, {3.672564283698662*^9, 3.672564284474712*^9}, {
+   3.672564728682837*^9, 3.672564729298018*^9}, 3.6725719864365997`*^9, {
+   3.672991883979834*^9, 3.672991886364043*^9}}],
+
+Cell[BoxData["\<\"ylmIntegralsSouth.dat\"\>"], "Output",
+ CellChangeTimes->{3.672564244949691*^9, 3.6725642857395687`*^9, 
+  3.6725646900306883`*^9, 3.672564731559085*^9, 3.6725719883081293`*^9, 
+  3.672992923633429*^9}]
+}, Open  ]]
+},
+WindowSize->{808, 911},
+WindowMargins->{{Automatic, 378}, {76, Automatic}},
+FrontEndVersion->"10.4 for Linux x86 (64-bit) (February 25, 2016)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 416, 9, 32, "Input"],
+Cell[977, 31, 1973, 48, 244, "Input"],
+Cell[CellGroupData[{
+Cell[2975, 83, 558, 10, 32, "Input"],
+Cell[3536, 95, 220, 3, 32, "Output"]
+}, Open  ]]
+}
+]
+*)
+
