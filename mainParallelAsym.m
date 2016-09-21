@@ -7,7 +7,12 @@ noWorkers = 4;
 noLoops = 20;
 trainSetSize = 20;
 
-noFeatures = 2;
+% noFeatures = 2;
+% A0 = 1;
+% omega = 1;
+% FWHM = 200;
+% omega2 = omega / 2;
+% FWHM2 = FWHM;
 
 filename = 'SCID.mat';
 
@@ -22,7 +27,9 @@ domain.min = [32.2362, 0]; % log(1e14) = 32.2362
 domain.max = [36.8414, 2*pi]; % log(1e16) = 36.8414
 
 % the target function
-f = @(x) targetFuns.patchkovskiiAsym(exp(x(1)),x(2));
+% x(1): log(intensity2), x(2): phasediff
+f = @(x) targetFuns.targetAsym(A0, omega, FWHM, ...
+      sqrt(exp(x(1))/3.51e16)/omega2, omega2, FWHM2, x(2));
 
 % random number generator
 r = @(n) util.randbox(n, domain);

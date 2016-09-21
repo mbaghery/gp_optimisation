@@ -15,7 +15,6 @@
 
 # no space is acceptable before or after '=' below
 noFeatures="3"
-
 A0=1.00
 omega=1.00
 FWHM=25
@@ -23,21 +22,19 @@ FWHM=25
 source="$HOME/Documents/MATLAB/Optimisation"
 scratch="/scratch/$USER/matlab-"$noFeatures"D_"$A0"_"$omega"_"$FWHM
 results="/data2/finite/mbaghery/maxionization-"$noFeatures"D_"$A0"_"$omega"_"$FWHM
-###cache="/data2/finite/mbaghery/SCID_5000_0.4"
 
 hostname
-
 
 # 1)  Copy files from my computer to the server
 # This scratch is on the server, not my own computer.
 mkdir -p $scratch  # -p: Create parent directories if necessary.
 mkdir -p $results
 cp -r $source/* $scratch
-###cp $cache/cache/* $scratch/cache
 
 
 # 2)  Actual Work
-matlab -nodisplay -singleCompThread -r "cd $scratch; noFeatures=$noFeatures, mainParallelSCID; quit"
+matlab -nodisplay -singleCompThread -r \
+  "cd $scratch; A0=$A0, omega=$omega, FWHM=$FWHM, noFeatures=$noFeatures, mainParallelYield; quit"
 
 
 # 3) Copy files back from the scratch disk to /data2

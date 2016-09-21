@@ -18,7 +18,7 @@ function plotPES(spectrum, params, delta, gamma)
 %           0.9961    0.9961    0.5977
 %           0.6914    0.3477    0.1562];
 
-colors = distinguishable_colors(20);
+  colors = distinguishable_colors(30);
 
 
   for i = 0:params.lmax
@@ -33,30 +33,12 @@ colors = distinguishable_colors(20);
   set(gcf, 'Position', [300 300 600 400]);
 %   set(gca, 'YScale', 'Log');
   grid on;
-  xlim([0.0, 0.6]);
+  xlim([0.0, 1]);
 %   ylim([0,20]);
 %   ylim([1e-6,1e2]);
 
 
-  % tau is taken from the paper by Demekhin & Cederbaum
-  if (strcmp(params.pulseshape, 'z QHOStates'))
-    titlebar = sprintf(['A_0 = %.3f, \\omega = %.3f, FWHM = %.0f\n' ...
-      'I = %.2e W/cm^2, \\omega = %.2f eV, \\tau = %.2f fs' ...
-      ], ... %'\n\\Delta = %.5f, \\Gamma = %.5f'], ...
-      params.A0, params.omega, params.FWHM, ...
-      (params.A0 * params.omega)^2 * 3.51 * 1e16, params.omega/0.03674, params.FWHM/(2*sqrt(log(2))) / 41.34 ...
-      ); %, delta, gamma);
-  elseif (strcmp(params.pulseshape, 'z 2QHOStates'))
-    titlebar = sprintf(['A_0 = %.3f, \\omega = %.3f, FWHM = %.0f, A_0'' = %.3f, \\omega'' = %.2f, FWHM'' = %.0f\n' ...
-      'I = %.2e W/cm^2, \\omega = %.2f eV, \\tau = %.2f fs\n' ...
-      'I'' = %.2e W/cm^2, \\omega'' = %.2f eV, \\tau'' = %.2f fs' ...
-      ], ... %'\n\\Delta = %.5f, \\Gamma = %.5f'], ...
-      params.A0, params.omega, params.FWHM, params.A0_x, params.omega_x, params.FWHM_x, ...
-      (params.A0 * params.omega)^2 * 3.51 * 1e16, params.omega/0.03674, params.FWHM/(2*sqrt(log(2))) / 41.34, ...
-      (params.A0_x * params.omega_x)^2 * 3.51 * 1e16, params.omega_x/0.03674, params.FWHM_x/(2*sqrt(log(2))) / 41.34 ...
-      ); %, delta, gamma
-  end
-  
+  titlebar = targetFuns.createtitle(params);
   title(titlebar);
   xlabel('Energy [a.u.]');
   

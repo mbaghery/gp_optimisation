@@ -8,6 +8,9 @@ noLoops = 20;
 trainSetSize = 40;
 
 % noFeatures = 3;
+% A0 = 1;
+% omega = 1;
+% FWHM = 200;
 
 filename = 'SCID.mat';
 
@@ -20,7 +23,7 @@ domain.min = -1 * ones(1, noFeatures);
 domain.max = 1 * ones(1, noFeatures);
 
 % the target function
-f = @targetFuns.patchkovskii;
+f = @(weights) targetFuns.targetYield(A0, omega, FWHM, weights);
 
 % random number generator
 r = @util.unisphrand;

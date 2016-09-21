@@ -3,8 +3,8 @@ function params = extractParams(outputFile)
 %   Detailed explanation goes here
 
 % params is a struct with the following fields:
-%    nradial, dr, lmax, pulseshape, A0, omega, FWHM, ...
-%    A0_x, omega_x, FWHM_x, dt, timesteps, simLength
+%    nradial, dr, lmax, pulseshape, A0, omega, FWHM, midlaser, ...
+%    A0_x, omega_x, FWHM_x, midlaser_x, dt, timesteps, simlength
 
   A = importdata(outputFile, '\n');
   A = char(A);
@@ -92,6 +92,7 @@ function params = extractParams(outputFile)
       temptext(strfind(temptext, ',')) = ' ';
       a = textscan(temptext, '%s %f %f %f %f');
       params.omega = a{2};
+      params.midlaser = a{4};
       params.FWHM = a{5};
       
       break;
@@ -124,6 +125,7 @@ function params = extractParams(outputFile)
       temptext(strfind(temptext, ',')) = ' ';
       a = textscan(temptext, '%s %f %f %f %f');
       params.omega_x = a{2};
+      params.midlaser_x = a{4};
       params.FWHM_x = a{5};
 
       break;
@@ -156,7 +158,7 @@ function params = extractParams(outputFile)
       temptext(strfind(temptext, '=')) = ' ';
       a = textscan(temptext, '%s %f');
       params.timesteps = a{2};
-      params.simLength = params.timesteps * params.dt;
+      params.simlength = params.timesteps * params.dt;
       
       break;
     end

@@ -15,15 +15,15 @@
 
 # no space is acceptable before or after '=' below
 noFeatures="2"
-
-A0_2=0.375
-omega2=0.45
+A0=0.375
+omega=0.45
+FWHM=80
+omega2=0.225
 FWHM2=80
 
 source="$HOME/Documents/MATLAB/Optimisation"
-scratch="/scratch/$USER/matlab-"$noFeatures"D_"$A0_2"_"$omega2"_"$FWHM2
-results="/data2/finite/mbaghery/asym-"$noFeatures"D_"$A0_2"_"$omega2"_"$FWHM2
-###cache="/data2/finite/mbaghery/SCID_5000_0.4"
+scratch="/scratch/$USER/matlab-"$noFeatures"D_"$A0"_"$omega"_"$FWHM"_"$omega2"_"$FWHM2
+results="/data2/finite/mbaghery/asym-"$noFeatures"D_"$A0"_"$omega"_"$FWHM"_"$omega2"_"$FWHM2
 
 hostname
 
@@ -33,11 +33,11 @@ hostname
 mkdir -p $scratch  # -p: Create parent directories if necessary.
 mkdir -p $results
 cp -r $source/* $scratch
-###cp $cache/cache/* $scratch/cache
 
 
 # 2)  Actual Work
-matlab -nodisplay -singleCompThread -r "cd $scratch; noFeatures=$noFeatures, mainParallelAsym; quit"
+matlab -nodisplay -singleCompThread -r \
+  "cd $scratch; A0=$A0, omega=$omega, FWHM=$FWHM, omega2=$omega2, FWHM2=$FWHM2, noFeatures=$noFeatures, mainParallelAsym; quit"
 
 
 # 3) Copy files back from the scratch disk to /data2
