@@ -48,3 +48,5 @@ else
   C = repmat(sum(a.*a,1)',1,m) + repmat(sum(b.*b,1),n,1) - 2*a'*b;
 end
 C = max(C,0);          % numerical noise can cause C to negative i.e. C > -1e-14
+
+end

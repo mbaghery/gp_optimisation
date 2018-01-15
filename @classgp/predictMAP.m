@@ -17,7 +17,7 @@ function [varargout] = predictMAP(this, xs)
     - sum(Ks_invK .* Ks, 2);
   
   % remove negative values, as they are meaningless
-%   k(k < 0) = 0;
+  k(k < 0) = 0;
 
 
   % Calculate the derivatives only if they are needed
@@ -40,6 +40,7 @@ function [varargout] = predictMAP(this, xs)
     % d sigma^2(xs) / dx
     Dk(i,:) = feval(this.covD{:}, this.hyp.cov, xs(i,:), 'diag') ...
       - 2 * Ks_invK(i,:) * DKs;
+
   end
   
   varargout = {m, k, Dm, Dk, Ks, DKs};

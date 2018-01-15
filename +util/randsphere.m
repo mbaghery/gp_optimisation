@@ -1,5 +1,5 @@
-function components = unisphrand(m, n)
-%CARTRAND Generate m random numbers uniformly distributed on an
+function components = randsphere(m, n)
+%RANDSPHERE Generate m random numbers uniformly distributed on an
 %n-dimensional sphere of radius 1
 %   The output is the components of a vector whose tip is on an
 %   n-dimensional sphere; the output consists of m rows each of which

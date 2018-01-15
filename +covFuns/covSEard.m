@@ -20,8 +20,10 @@ function K = covSEard(hyp, x, z, i, j)
 %   See also COVFUNCTIONS.M.
 % 
 % 
-%   Extended by Mehrdad Baghery, 2015-12-14. Works perfectly fine.
+%   Extended by Mehrdad Baghery.
 % 
+
+  import gpopt.util.sq_dist
 
   if nargin<2, K = '(D+1)'; return; end              % report number of parameters
   if nargin<3, z = []; end                                   % make sure, z exists
@@ -36,9 +38,9 @@ function K = covSEard(hyp, x, z, i, j)
     K = zeros(size(x,1),1);
   else
     if xeqz                                                 % symmetric matrix Kxx
-      K = util.sq_dist(diag(1./ell)*x');
+      K = sq_dist(diag(1./ell)*x');
     else                                                   % cross covariances Kxz
-      K = util.sq_dist(diag(1./ell)*x',diag(1./ell)*z');
+      K = sq_dist(diag(1./ell)*x',diag(1./ell)*z');
     end
   end
 
@@ -53,9 +55,9 @@ function K = covSEard(hyp, x, z, i, j)
       end
 
       if xeqz
-        K = sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i));
+        K = sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i));
       else
-        K = sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
+        K = sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
       end
     elseif i==D+1                                            % magnitude parameter
       K = 2 * sf2*exp(-K/2);
@@ -73,26 +75,26 @@ function K = covSEard(hyp, x, z, i, j)
       if j<=D % with respect to ell_i and ell_j
         if i==j
           if xeqz
-            K = sf2*exp(-K/2) .* util.sq_dist(x(:,j)'/ell(j)) ...
-                              .* (util.sq_dist(x(:,j)'/ell(j))-2);
+            K = sf2*exp(-K/2) .* sq_dist(x(:,j)'/ell(j)) ...
+                              .* (sq_dist(x(:,j)'/ell(j))-2);
           else
-            K = sf2*exp(-K/2) .* util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))...
-                              .* (util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))-2);
+            K = sf2*exp(-K/2) .* sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))...
+                              .* (sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j))-2);
           end
         else
           if xeqz
-            K = sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i)) ...
-                              .* util.sq_dist(x(:,j)'/ell(j));
+            K = sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i)) ...
+                              .* sq_dist(x(:,j)'/ell(j));
           else
-            K = sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i)) ...
-                              .* util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
+            K = sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i)) ...
+                              .* sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
           end
         end
       elseif j==D+1 % with respect to ell_i and sf
         if xeqz
-          K = 2 * sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i));
+          K = 2 * sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i));
         else
-          K = 2 * sf2*exp(-K/2) .* util.sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
+          K = 2 * sf2*exp(-K/2) .* sq_dist(x(:,i)'/ell(i),z(:,i)'/ell(i));
         end
       else
         error('Unknown hyperparameter')
@@ -104,9 +106,9 @@ function K = covSEard(hyp, x, z, i, j)
         end
 
         if xeqz
-          K = 2 * sf2*exp(-K/2) .* util.sq_dist(x(:,j)'/ell(j));
+          K = 2 * sf2*exp(-K/2) .* sq_dist(x(:,j)'/ell(j));
         else
-          K = 2 * sf2*exp(-K/2) .* util.sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
+          K = 2 * sf2*exp(-K/2) .* sq_dist(x(:,j)'/ell(j),z(:,j)'/ell(j));
         end
       elseif j==D+1 % with respect to sf and sf
         K = 4 * sf2*exp(-K/2);

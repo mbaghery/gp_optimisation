@@ -1,11 +1,10 @@
 function Y = denormalise(Y, range)
-%NORMALISE Rescales Y so that all the elements are between Ymin and Ymax
+%NORMALISE Rescales Y back to original assuming they were between 0 and -10
 
   normFactor = 10 ./ (range.max - range.min);
   
-  Y = bsxfun(@plus, ...
-    bsxfun(@rdivide, Y, normFactor), (range.max + range.min) / 2);
-  
+  Y = bsxfun(@plus, bsxfun(@rdivide, Y, normFactor), range.min);
+
 end
 
 

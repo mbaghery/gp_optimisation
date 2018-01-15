@@ -10,8 +10,6 @@ function DK = covSEisoD(hyp, x, z, i, j)
 %   The derivatives are taken with respect to z, the second parameter.
 %   
 %   The 'diag' option only works when x has one point.
-%   
-%   Tested on 2015-12-16. Works fine.
 
   if nargin<2, DK = '2'; return; end                 % report number of parameters
   if nargin<3, z = 'diag'; end                               % make sure, z exists

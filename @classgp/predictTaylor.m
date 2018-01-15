@@ -8,15 +8,9 @@ function varargout = predictTaylor(this, xs)
     [m, k, Dm, Dk, Ks, DKs] = this.predictAffine(xs);
   end
 
-
-
   % calculate the derivatives only if they are needed
   if (nargout<3)
     return
   end
-
-
-
-
 
 end

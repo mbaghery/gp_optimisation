@@ -29,7 +29,7 @@ classdef classgp < matlab.mixin.Copyable
   
   methods (Access = public)
     [l, dl, ddl] = infer(this, hyp)
-    output = optimise(this, hyp)
+    [output, l] = optimise(this, hyp)
     addTrainPoints(this, xs, ys)
     varargout = predictMAP(this, xs)
     varargout = predictAffine(this, xs)

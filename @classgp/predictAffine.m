@@ -10,9 +10,6 @@ function varargout = predictAffine(this, xs)
   
   % no. of hyper parameters
   noHP = numel(this.hyp.mean) + numel(this.hyp.cov);
-  
-  % REDUNDANT, this line should be removed some way
-%   Ks = feval(this.cov{:}, this.hyp.cov, this.X, xs)';
 
   dm = zeros(size(xs, 1), noHP);
   for i = 1:numel(this.hyp.mean)
@@ -28,12 +25,19 @@ function varargout = predictAffine(this, xs)
   end
   
   
+%   % it is assumed that only the input correlation lengths are important
+%   k = k + sum((dm(:,end-numel(this.hyp.cov)+1:end-1) * ...
+%     this.LaplaceCov) .* dm(:,end-numel(this.hyp.cov)+1:end-1), 2);
   
-  k = k + sum((dm(:,end-numel(this.hyp.cov)+1:end-1) * ...
-    this.LaplaceCov) .* dm(:,end-numel(this.hyp.cov)+1:end-1), 2);
+%   % it is assumed that only the correlation function parameters are important
+%   k = k + sum((dm(:,end-numel(this.hyp.cov)+1:end) * ...
+%     this.LaplaceCov) .* dm(:,end-numel(this.hyp.cov)+1:end), 2);
   
-%   k = k + sum((dm * this.LaplaceCov) .* dm, 2);
-
+  % it is assumed all the hyperparameters are important.
+  k = k + sum((dm * this.LaplaceCov) .* dm, 2);
+  
+  
+  
   % remove negative values, as they are meaningless
   k(k < 0) = 0;
   
@@ -50,9 +54,6 @@ function varargout = predictAffine(this, xs)
   for i = 1:size(xs, 1)
     dDm = zeros(noHP, size(xs, 2));
     
-%     % REDUNDANT, this line should be removed some way
-%     DKs = feval(this.covD{:}, this.hyp.cov, this.X, xs(i,:));
-    
     for j = 1:numel(this.hyp.mean)
       dDm(j,:) = feval(this.meanD{:}, this.hyp.mean, xs(i,:), j) ...
         - this.invK_dmu(:,j)' * DKs;
@@ -66,10 +67,17 @@ function varargout = predictAffine(this, xs)
     end
     
     
-    Dk(i,:) = Dk(i,:) + 2 * dm(i,end-numel(this.hyp.cov)+1:end-1) * ...
-      this.LaplaceCov * dDm(end-numel(this.hyp.cov)+1:end-1,:);
+    % it is assumed that only the input correlation lengths are important
+%     Dk(i,:) = Dk(i,:) + 2 * dm(i,end-numel(this.hyp.cov)+1:end-1) * ...
+%       this.LaplaceCov * dDm(end-numel(this.hyp.cov)+1:end-1,:);
     
-%     Dk(i,:) = Dk(i,:) + 2 * dm(i,:) * this.LaplaceCov * dDm;
+    % it is assumed that only the correlation function parameters are important
+%     Dk(i,:) = Dk(i,:) + 2 * dm(i,end-numel(this.hyp.cov)+1:end) * ...
+%       this.LaplaceCov * dDm(end-numel(this.hyp.cov)+1:end,:);
+    
+    % it is assumed all the hyperparameters are important.
+    Dk(i,:) = Dk(i,:) + 2 * dm(i,:) * this.LaplaceCov * dDm;
+    
   end
   
   varargout = {m, k, Dm, Dk, Ks, DKs};

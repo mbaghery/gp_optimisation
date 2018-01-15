@@ -1,15 +1,18 @@
 function [l, dl, ddl] = infer(this, hyp)
-%   Does Bayesian inference, that is, it sets up the required matrices.
+%INFER Does Bayesian inference, that is, it sets up the required matrices,
 %   returns the marginalised likelihood and its derivatives if required
-%   
+%
 %   first derivatives with respect to mean hyperparameters appear and then
 %   derivatives with respect to covariance function hyperparameters.
-%
-%   Based on infExact by Rasmussen.
 %
 %   Throughout this package, if the name of a variable begins with 'd' it
 %   is derivative with respect to hyperparameters, but if it begin with 'D'
 %   it is derivative with respect to xs.
+%
+%   Based on infExact from GPML package by Rasmussen & Nickisch.
+%   I have expanded/changed the original file as required. Please
+%   refer to the license file for the details of the license.
+
 
   this.hyp = hyp;
   
@@ -20,7 +23,7 @@ function [l, dl, ddl] = infer(this, hyp)
 
   N = length(this.Y);
 
-  % very small sn2 can cause numerical instabilities; I don't know exactly
+  % very small sn2 can cause numerical instabilities; I don't exactly know
   % what this is supposed to mean
   if (sn2 < 1e-6)
     L = chol(K + sn2 * eye(N));
@@ -31,7 +34,6 @@ function [l, dl, ddl] = infer(this, hyp)
   end
   
   % inverse of K matrix with noise
-%   this.invK = util.solve_chol(L, eye(N)) / denominator;
   this.invK = L\(L'\eye(N)) / denominator;
   this.alpha = this.invK * (this.Y - M);
   
@@ -109,7 +111,7 @@ function [l, dl, ddl] = infer(this, hyp)
   end
   
   
-% with respect to mean and covariance hp
+  % with respect to mean and covariance hp
   for i = 1:numel(hyp.cov)
     this.invK_dK_alpha(:,i) = invK_dK(:,:,i) * this.alpha;
     
@@ -138,15 +140,18 @@ function [l, dl, ddl] = infer(this, hyp)
     end
   end
   
-%   this.invK_dmu = invK_dmu;
-%   this.invK_dK_alpha = invK_dK_alpha;
   
+%   % it is assumed that only the input correlation lengths are important
+%   this.LaplaceCov = ...
+%     ddl(end-numel(hyp.cov)+1:end-1, end-numel(hyp.cov)+1:end-1) ...
+%     \ eye(numel(hyp.cov)-1);
   
-  % it is assumed that only the input correlation lengths are important
-  this.LaplaceCov = ...
-    ddl(end-numel(hyp.cov)+1:end-1, end-numel(hyp.cov)+1:end-1) ...
-    \ eye(numel(hyp.cov)-1);
+% %   it is assumed that only the correlation function parameters are important
+%   this.LaplaceCov = ...
+%     ddl(end-numel(hyp.cov)+1:end, end-numel(hyp.cov)+1:end) ...
+%     \ eye(numel(hyp.cov));
   
-%   this.LaplaceCov = ddl \ eye(noHP);
+  % it is assumed all the hyperparameters are important.
+  this.LaplaceCov = ddl \ eye(noHP);
   
 end

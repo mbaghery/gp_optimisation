@@ -1,7 +1,7 @@
 function [f, Df] = oneStepLookahead(this, xs)
 %ONESTEPLOOKAHEAD Gives the next probable point to evaluate
-%   Based on paper: Gaussian processes for global optimization, Osborne,
-%   et al.
+%   Implementation of 'Gaussian processes for global optimization,
+%    Osborne, et al. 2009'
 
   if (isempty(xs))
     f=[];
@@ -18,13 +18,6 @@ function [f, Df] = oneStepLookahead(this, xs)
   if (isempty(eta)); eta = min(m); end
 
 
-%   f = 1/2 * (m + eta - sqrt(2/pi)*s.*exp(-(m-eta).^2./(2*s.^2)) ...
-%     + (eta-m).*erf((m-eta)./(sqrt(2)*s)));
-%   f = 1/2 * (eta + m) ...
-%     + 1/2 * (eta - m) .* erf((m-eta) ./ sqrt(2*k)) ...
-%     - sqrt(k / (2*pi)) .* exp(-(m-eta).^2 ./ (2*k));
-
-
   normalCDF = 0.5 * erfc((m-eta) ./ sqrt(2*k));
   normalPDF = exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k);
 
@@ -38,17 +31,11 @@ function [f, Df] = oneStepLookahead(this, xs)
     return
   end
 
-%   df =  -1/2 * bsxfun(@times, Dm, erf((m-eta)./(sqrt(2)*s))-1) ...
-%    - bsxfun(@times, ds, exp(-(eta - m).^2./(2*s.^2))/sqrt(2*pi));
-%   df = -1/2 * bsxfun(@times, Dm, erf((m-eta) ./ sqrt(2*k)) - 1) ...
-%        -1/2 * bsxfun(@times, Dk, exp(-(m-eta).^2 ./ (2*k)) ./ sqrt(2*pi*k));
 
   Df = bsxfun(@times, normalCDF, Dm) ...
      - bsxfun(@times, normalPDF, 0.5 * Dk);
 
-  % sometimes k could be zero, which leads to NaN. Therefore, let's kill
-  % them bitches all
+  % sometimes k could be zero, which leads to NaN.
   Df(isnan(Df))=0;
 
 end
-  

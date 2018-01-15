@@ -21,6 +21,8 @@ function K = covSEiso(hyp, x, z, i, j)
 %   Extended by Mehrdad Baghery, 2015-12-14. Works perfectly fine.
 % 
 
+  import gpopt.util.sq_dist
+
   if nargin<2, K = '2'; return; end                  % report number of parameters
   if nargin<3, z = []; end                                   % make sure, z exists
   xeqz = isempty(z); dg = strcmp(z,'diag');                       % determine mode
@@ -33,9 +35,9 @@ function K = covSEiso(hyp, x, z, i, j)
     K = zeros(size(x,1),1);
   else
     if xeqz                                                 % symmetric matrix Kxx
-      K = util.sq_dist(x'/ell);
+      K = sq_dist(x'/ell);
     else                                                   % cross covariances Kxz
-      K = util.sq_dist(x'/ell,z'/ell);
+      K = sq_dist(x'/ell,z'/ell);
     end
   end
 
